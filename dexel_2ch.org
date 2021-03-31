@@ -1,0 +1,281 @@
+* Generador O3 Gausstek
+** Migrar programa desde emacs_F051_lcd
+   - en la placa planolux RGBW ver 1.0 desarrolle el soft
+   - lo tengo que migrar de placa y micro al nuevo prototipo
+   - la mayoria de las funciones las deje en el main
+
+** Migrar Hard
+*** DONE del modulo hard
+    CLOSED: [2020-07-01 Wed 16:50]
+    - los pines de hard.h
+    - las funciones de hard.c o a hard.c
+      
+*** DONE del modulo gpio
+    CLOSED: [2020-07-01 Wed 16:50]
+    - la utilizacion de pines pero aplicadas al nuevo hardware
+
+*** DONE desde el main
+    CLOSED: [2020-07-01 Wed 16:50]
+    - aca deje casi todas las funciones principales para migrar facil
+    - cosas del hard y el soft
+
+** Migrar Soft
+*** DONE desde el main a los distintos modulos
+    CLOSED: [2020-07-01 Wed 16:50]
+    - todas las rutinas que utilice las deje en el main
+    - pasarlas a los modulos que corresponda
+
+** Falta Relay
+*** DONE todas las rutinas del relay con TIM6 faltan migrar y probar
+    CLOSED: [2020-07-01 Wed 16:50]
+    - use el TIM16 por interrupcion finalmente
+
+** Falta zcd
+*** DONE probablemente por interrupcion
+    CLOSED: [2020-07-01 Wed 16:51]
+    - el zero crossing deberia estar por interrupcion
+    - es porque el uso del LCD es muy intensivo y demora bastante 
+      la ejecucion del programa
+
+** Falta Encoder
+*** DONE Las rutinas del encoder faltan
+    CLOSED: [2020-07-01 Wed 16:51]
+    - hay que traducir el movimiento al enum de switches
+    - hay que mirar el resultado solo dentro del menu principal
+    - fuera del menu solo usa el switch del SET
+
+** Armar rutinas en test_functions
+*** DONE armar las rutinas de prueba
+    CLOSED: [2020-07-01 Wed 16:51]
+    - rutinas de pruebas de los nuevos pines IO
+    - mover los perifericos
+
+** Armar grabado de memoria para los seteos iniciales
+*** DONE en el modulo flash_program
+    CLOSED: [2020-07-01 Wed 16:51]
+    - de esto no hice nada, solo en el main deje una estructura para los seteos
+    - no se si vale la pena una estructura previa para seteos iniciales
+      o simplemente arrancar por default, ya que los valores iniciales son muy pocos
+
+** DONE Funciones que quiera testear especialmente (solo soft) ya esta puesto
+   CLOSED: [2020-06-27 Sat 08:43]
+*** La parte del soft que no dependa del hard lo puedo poner en tests.c
+    - este tests.c no es un modulo, sino un programa independiente para 
+      testeo de funciones
+    - lo pruebo con make tests
+
+** DONE Makefile y lcd lcd_utils ya estan migrados
+   CLOSED: [2020-06-27 Sat 08:40]
+   - todo esto ya lo pase, al Makefile le tengo que hacer el update de modulos
+     que realmente use en la nueva placa
+
+
+
+* Info sobre cosas especiales en el LCD
+  - esta info la busque en este link
+    https://www.8051projects.net/lcd-interfacing/initialization.php
+
+  - como generar caracteres propios en GCRAM
+    https://www.handsonembedded.com/lcd16x2-hd44780-tutorial-5/
+
+* Info sobre el funcionamiento del encoder
+  - todavia no puse las rutinas, pero fui con este link
+    https://dronebotworkshop.com/rotary-encoders-arduino/
+
+* Modificaciones al Hard 30-06-2020
+  - agregar un led!!!
+  - diodo de inversion de polaridad en 12V
+
+* Placa ver 2.0 31-08-2020
+** en el linker tuve que modificar tamanio de memoria
+   - por ahora todo el resto lo pude manejar con la version de HARDWARE
+     en hard.h
+
+
+
+* Modificaciones al soft pedidas el 09-09-2020
+** DONE En el título principal va WURTH ARGENTINA
+   CLOSED: [2020-09-16 Wed 07:59]
+   Por ahora, podría ser que lo cambien…
+
+** TODO Menu oculto 
+   - Presionando Set por el tiempo que actualmente hay que presionarlo para acceder al menú oculto
+   - Ingrese Password (8 dígitos)
+
+*** Se agregan a las opciones actuales
+    - Modo operación
+    - Set password
+
+**** Modo operación
+     Manual - Tarjeta
+
+**** DONE Set Password
+     CLOSED: [2020-09-17 Thu 14:19]
+     8 dígitos, confirme, está seguro, esta re-contra seguro, (tres pasos de confirmación) graba
+     Tenemos un password nuestro que permite acceder al menú y que solamente lo sabremos nosotros
+
+     Después igual que como está ahora, para confirmar la grabación de los cambios…
+
+** Operacion Manual
+   Si estamos en manual, tal cual como está ahora
+
+** TODO Operacion con Tarjeta
+   Si estamos en funcionamiento tarjeta
+
+   Las tarjetas tienen grabado para cuantos tratamientos son válidas. 
+   Cada uso va descontando tratamientos hasta que quede vacía.
+
+*** Pantallas 
+    WURTH ARGENTINA
+    * Acerque Tarjeta * (blinking)
+
+    Al acercar la tarjeta
+
+    WURTH ARGENTINA
+    Sesiones: 1/xxx
+
+    Si acerca la tarjeta de nuevo
+    Aleje y Acerque
+    Tarjeta confirma
+
+    Si no la acerca digamos en los próximos 5 segundos
+    WURTH ARGENTINA
+    * Acerque Tarjeta * (blinking)
+
+    Si la acerca
+    Mantenga cerca (graba el descuento de la sesión)
+    Puntitos que se van escribiendo y finalmente Sesión aceptada por un par de segundos
+
+    WURTH ARGENTINA
+    Xx m – O3 comenzar
+    Y se queda ahí hasta que presiona O3 y empieza
+
+** Funcionamiento no resuelto
+    Quedaron blancos que no hubo forma que lo podamos discutir por teléfono, 
+    la mina de marketing es de madera.
+    Quede en que le mostrábamos el funcionamiento básico con tarjeta así como te lo describo y que 
+    podíamos adaptar o cambiar cualquier cosa siempre dentro de las limitaciones del caso.
+    Los blancos son: que pasa si el usuario no presiona O3 por algún motivo o si haciendo 
+    el tratamiento presiona pausa y no vuelve nunca
+
+
+
+* Armo un test para la placa RFID-RC522 de bajo costo
+** Links a las libs que uso
+   https://github.com/nmuntyanov/stm32f103c8t6-rc522/blob/master/src/main.c
+   esta es la que uso como lib
+
+   https://github.com/patelsubhash/RC522/blob/master/ESP32IDF/MFRC522.c
+
+   https://github.com/abobija/esp-idf-rc522/blob/master/rc522.c
+
+   https://github.com/fmilburn3/CardReader_RFID_RC522/blob/master/Mfrc522.cpp
+
+** Esta lib es bastante completa, la uso para ver como hace cosas raras
+   https://github.com/miguelbalboa/rfid/blob/master/src/MFRC522.cpp
+
+   esta es un poco mas reducida y se entiende mas rapido
+   https://github.com/fmilburn3/CardReader_RFID_RC522/blob/master/Mfrc522.cpp
+
+** Armo dos modulos exportables
+*** mfrc522 comunica SPI con la placa RFID-RC522
+    - para exportar facilmente requiere de las funciones de spi del micro
+      especifico
+
+*** test_mfrc522 programa de pruebas exportable
+
+
+* Tarjeta de test
+** china leo
+   MI_OK
+   i: 0 id: 0x49
+   i: 1 id: 0xad
+   i: 2 id: 0x92
+   i: 3 id: 0x99
+   i: 4 id: 0xef
+
+** facu leo
+   i: 0 id: 0x8b        
+   i: 1 id: 0xcb
+   i: 2 id: 0xb7 
+   i: 3 id: 0x80
+   cardtype: 0x08
+   MI_OK AuthA block 11 
+
+*** dentro del bloque 11
+MI_OK Read block
+i: 0 rb: 0x00  
+i: 1 rb: 0x00
+i: 2 rb: 0x00
+i: 3 rb: 0x00
+i: 4 rb: 0x00
+i: 5 rb: 0x00
+i: 6 rb: 0xff
+i: 7 rb: 0x07
+i: 8 rb: 0x80
+i: 9 rb: 0x69
+i: 10 rb: 0xff
+i: 11 rb: 0xff
+i: 12 rb: 0xff
+i: 13 rb: 0xff
+i: 14 rb: 0xff
+i: 15 rb: 0xff
+i: 16 rb: 0x00
+i: 17 rb: 0x00
+i: 18 rb: 0x00
+i: 19 rb: 0x00
+
+*** sector 0
+MI_OK
+i: 0 id: 0x8b
+i: 1 id: 0xcb
+i: 2 id: 0xb7
+i: 3 id: 0x80
+cardtype: 0x08
+MI_OK AuthA block 0
+
+reading block 0
+0x8b 0xcb 0xb7 0x80 0x77 0x88 0x04 0x00 0x46 0x45 0x85 0x92 0x45 0x10 0x07 0x09
+reading block 1
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+reading block 2
+0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+reading block 3
+0x00 0x00 0x00 0x00 0x00 0x00 0xff 0x07 0x80 0x69 0xff 0xff 0xff 0xff 0xff 0xff
+
+
+** bloque de auth enviado
+auth
+i: 0 id: 0x61  
+i: 1 id: 0x03   
+i: 2 id: 0xff  
+i: 3 id: 0xff  
+i: 4 id: 0xff  
+i: 5 id: 0xff  
+i: 6 id: 0xff  
+i: 7 id: 0xff  
+i: 8 id: 0x49  
+i: 9 id: 0xad  
+i: 10 id: 0x92 
+i: 11 id: 0x99 
+
+* Modificacion Firmware 20-01-2021
+** Luego de setear tiempo en el Menu o otros seteos en el MainMenu
+*** Problema
+   - no aparecen las barritas en el tratamiento
+   - si se pausa no titila el primer renglon
+
+*** Solucion
+    - El timer de timeout de 20 segundos dentro de los menues se utiliza para
+      la barrita en el tratamiento y el blinking de linea uno en la pausa.
+    - Cuando estos 20segundos pasan todo se corrije
+    - Igual modifique a la salida de ambos menues pongo el timer_standby = 0
+
+
+* Modificacion Hardware por display LCD
+** El backlight esta para el LCD azul de una marca y se compro otra
+*** Backlight Azul original
+   - R12 8k2; R14 470
+
+*** Modificacion al backlight nuevo
+    - R12 8k2 // 4k7
