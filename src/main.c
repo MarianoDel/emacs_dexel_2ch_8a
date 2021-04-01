@@ -61,7 +61,9 @@ int main(void)
 
     // Begin Hardware Tests - check test_functions module
     TF_Led();    //simple led functionality
-    // TF_switchSET();
+    // TF_SW_UP();
+    // TF_SW_DWN();
+    // TF_SW_SEL();    
     // TF_lcdE();
     // TF_lcdRS();
     // TF_lcdData();

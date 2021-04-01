@@ -218,22 +218,25 @@ tests:
 	gcc src/tests.c
 	./a.out
 
-tests_card:
-	# primero objetos de los modulos a testear, solo si son tipo HAL sin dependencia del hard
-	gcc -c src/card_utils.c -I. $(INCDIR)
-	gcc src/tests_card.c card_utils.o
-	./a.out
-
-tests_lcd_simul:
+tests_lcd_menues:
 	# first compile common modules (modules to test and dependencies)
 	gcc -c src/lcd_utils.c -I. $(INCDIR)
 	gcc -c src/menues.c -I. $(INCDIR)
 	# then the gtk lib modules
-	# gcc -c `pkg-config --cflags gtk+-3.0` src/fake_lcd_hard.c -o fake_lcd_hard.o
-	gcc -c `pkg-config --cflags gtk+-3.0` src/main_glade_lcd.c -o main_glade_lcd.o
+	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_lcd_menues.c -o tests_glade_lcd_menues.o
 	# link everithing
-	# gcc main_glade_lcd3.o fake_lcd_hard.o lcd_utils.o menues.o `pkg-config --libs gtk+-3.0` -o tests_gtk
-	gcc main_glade_lcd.o lcd_utils.o menues.o `pkg-config --libs gtk+-3.0` -o tests_gtk
+	gcc tests_glade_lcd_menues.o lcd_utils.o menues.o `pkg-config --libs gtk+-3.0` -o tests_gtk
+	# run the simulation
+	# ./tests_gtk
+
+
+tests_lcd_blinking:
+	# first compile common modules (modules to test and dependencies)
+	gcc -c src/lcd_utils.c -I. $(INCDIR)
+	# then the gtk lib modules
+	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_lcd_blinking.c -o tests_glade_lcd_blinking.o
+	# link everything
+	gcc tests_glade_lcd_blinking.o lcd_utils.o `pkg-config --libs gtk+-3.0` -o tests_gtk
 	# run the simulation
 	# ./tests_gtk
 

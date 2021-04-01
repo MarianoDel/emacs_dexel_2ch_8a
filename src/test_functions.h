@@ -21,8 +21,8 @@
 // Exported Functions ----------------------------------------------------------
 void TF_Led (void);
 void TF_SW_UP (void);
-void TF_SW_SELECT (void);
-void TF_SW_DOWN (void);
+void TF_SW_DWN (void);
+void TF_SW_SEL (void);
 void TF_lcdE (void);
 void TF_lcdRS (void);
 void TF_lcdBklight (void);

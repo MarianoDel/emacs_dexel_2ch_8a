@@ -129,20 +129,33 @@ void TF_lcdBklight (void)
 
 void TF_lcdData (void)
 {
-    // while (1)
-    // {
-    //     //pa0 a pa3
-    //     GPIOA->BSRR = 0x0000000F;
-    //     Wait_ms(10);
-    //     GPIOA->BSRR = 0x000F0000;
-    //     Wait_ms(10);
-    // }
+    while (1)
+    {
+        //pa0 a pa3
+        LED_ON;
+        GPIOA->BSRR = 0x0000000F;
+        Wait_ms(2000);
+        
+        LED_OFF;
+        GPIOA->BSRR = 0x000F0000;
+        Wait_ms(2000);
 
-    // GPIOA->BSRR = 0x00000005;
-    // while (1);
+        LED_ON;
+        GPIOA->BSRR = 0x00000005;
+        Wait_ms(2000);
 
-    GPIOA->BSRR = 0x0000000A;
-    while (1);
+        LED_OFF;
+        GPIOA->BSRR = 0x00050000;
+        Wait_ms(2000);
+
+        LED_ON;
+        GPIOA->BSRR = 0x0000000A;
+        Wait_ms(2000);
+
+        LED_OFF;
+        GPIOA->BSRR = 0x000A0000;
+        Wait_ms(2000);
+    }
 }
 
 

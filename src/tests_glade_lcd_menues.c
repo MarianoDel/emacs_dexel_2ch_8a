@@ -10,8 +10,8 @@
 #include "menues.h"
 
 // The LCD used 2x16 or 4x20
-// #define LCD_CONF_2_16
-#define LCD_CONF_4_20
+#define LCD_CONF_2_16
+// #define LCD_CONF_4_20
 
 #ifdef LCD_CONF_4_20
 #define LCD_ROWS    4
@@ -777,11 +777,11 @@ void Lcd_Command (unsigned char data)
 
 
 // Nedded by menues module provided by hard module
-void UpdateEncoder (void)
+void UpdateSwitches (void)
 {
 }
 
-resp_sw_t CheckSET (void)
+resp_sw_t Check_SW_SEL (void)
 {
     resp_sw_t sw = SW_NO;
     
@@ -795,7 +795,7 @@ resp_sw_t CheckSET (void)
     return sw;    
 }
 
-unsigned char CheckCCW (void)
+unsigned char Check_SW_DWN (void)
 {
     unsigned char a = 0;
     
@@ -810,7 +810,7 @@ unsigned char CheckCCW (void)
 }
 
 
-unsigned char CheckCW (void)
+unsigned char Check_SW_UP (void)
 {
     unsigned char a = 0;
     

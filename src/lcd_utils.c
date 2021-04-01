@@ -814,7 +814,8 @@ resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
 #ifdef LINE_LENGTH_16        
         // Lcd_TransmitStr((const char *) "Cont.     Select");
         // Lcd_TransmitStr((const char *) "SET    or    < >");
-        Lcd_TransmitStr((const char *) "<-> o Set Acepta");                
+        // Lcd_TransmitStr((const char *) "<-> o Set Acepta");
+        Lcd_TransmitStr((const char *) "<->  or Select  ");                        
 #endif        
         show_select_state++;
         break;
@@ -873,8 +874,8 @@ resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
         Lcd_TransmitStr((const char *) "Selected");
 #endif
 #ifdef LINE_LENGTH_16
-        // Lcd_TransmitStr((const char *) "Selected...     ");
-        Lcd_TransmitStr((const char *) "Seleccionado... ");
+        Lcd_TransmitStr((const char *) "Selected...     ");
+        // Lcd_TransmitStr((const char *) "Seleccionado... ");
 #endif        
         show_select_state++;
         break;
