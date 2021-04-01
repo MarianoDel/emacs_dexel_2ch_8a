@@ -1,6 +1,6 @@
-# O3 Treatment Control Board
+# 2Ch Control Board
 micro STM32F030K6T6
-Relay, zero crossing, LCD and encoder
+LCD and tact switches
 
 Before start check uc selection and the configuration
 -----------------------------------------------------

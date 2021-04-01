@@ -11,30 +11,74 @@
 #define _PARAMETERS_H_
 
 //-- Configuration for Struct --------------------
-typedef struct {
+typedef enum {
+    // program types (modes)
+    DMX1_MODE = 0,
+    DMX2_MODE,
+    MASTER_SLAVE_MODE,   
+    MANUAL_MODE,
+    RESET_MODE,
 
-    unsigned char treatment_time_min;    //1
-    unsigned char alarms_onoff;    //2
-    unsigned char ticker_onoff;    //3
-    unsigned short ticker_time;    //5
+    // program inner types
+    MASTER_NO_INNER_MODE,
+    MASTER_INNER_FIXED_MODE,
+    MASTER_INNER_SKIPPING_MODE,
+    MASTER_INNER_GRADUAL_MODE,
+    MASTER_INNER_STROBE_MODE,
+    MASTER_INNER_SLAVE,
 
-    unsigned int saved_psw;    //9
-    unsigned int new_psw;    //13    
-    unsigned char operation_mode;    //14
+    MANUAL_NO_INNER_MODE,
+    MANUAL_INNER_FIXED_MODE,
+    MANUAL_INNER_SKIPPING_MODE,
+    MANUAL_INNER_GRADUAL_MODE,
+    MANUAL_INNER_STROBE_MODE,
+
+    DMX2_INNER_DIMMER_MODE,
+    DMX2_INNER_SKIPPING_MODE,
+    DMX2_INNER_GRADUAL_MODE,
+    DMX2_INNER_STROBE_MODE,
     
-    unsigned char dummy1;    //15
-    unsigned char dummy2;    //16
-    // unsigned char dummy3;    //17
+    WIFI_MODE
+    
+} programs_type_e;
 
+
+//-- Memory Struct to Save --------------------
+typedef struct parameters {
+
+    //-- Tipo de Programa ----
+    unsigned char program_type;
+
+    //-- Para Modo Master ----
+    unsigned char master_send_dmx_enable;
+    
+    //-- Para Programas y modo Master ----
+    unsigned char program_inner_type;
+    unsigned char program_inner_type_speed;
+
+    //-- Para Modo Slave ----                  //4
+    unsigned short dmx_first_channel;
+    unsigned char dmx_channel_quantity;	
+
+    //-- Hardware Config ----   //7
+    unsigned short max_power;
+
+    //-- For Fixed colors settings ----   //9
+    unsigned char fixed_channels [6];    //15
+
+    //-- For Max Current Channels settings ----   //15
+    unsigned char max_current_channels [6];    //21
+    
+    //-- For Temperature Protection ----    
+    unsigned short temp_prot;        //23
+    
+    unsigned char dummy1;
+    // unsigned char dummy2;          
+    // unsigned char dummy3;       
+
+    //-- End of Struct check alignment ---- //24
 
 } parameters_typedef;
-
-typedef enum {
-    MODE_UNKNOW = 0,
-    NORMAL_MODE,
-    CARD_MODE
-    
-} operation_modes_t;
 
 //-- End of Memory Struct to Save --------------------
 

@@ -205,7 +205,7 @@ void TIM16_IRQHandler (void)	//tick on 1uS
         //bajar flag
         TIM16->SR = 0x00;
 
-    RelayTimHandler();
+    // RelayTimHandler();
 }
 
 

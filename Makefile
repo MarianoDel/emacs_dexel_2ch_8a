@@ -78,19 +78,19 @@ SRC += ./src/gpio.c
 SRC += ./src/hard.c
 SRC += ./src/it.c
 SRC += ./src/tim.c
-SRC += ./src/spi.c
+# SRC += ./src/spi.c
 SRC += ./src/uart.c
 SRC += ./src/flash_program.c
 SRC += ./src/lcd.c
 SRC += ./src/lcd_utils.c
 SRC += ./src/test_functions.c
-SRC += ./src/menues.c
-SRC += ./src/normal_mode.c
-SRC += ./src/card_mode.c
+# SRC += ./src/menues.c
+# SRC += ./src/normal_mode.c
+# SRC += ./src/card_mode.c
 
-SRC += ./src/mfrc522.c
-SRC += ./src/card_utils.c
-SRC += ./src/test_mfrc522.c
+# SRC += ./src/mfrc522.c
+# SRC += ./src/card_utils.c
+# SRC += ./src/test_mfrc522.c
 
 
 
