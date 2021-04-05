@@ -84,7 +84,8 @@ SRC += ./src/flash_program.c
 SRC += ./src/lcd.c
 SRC += ./src/lcd_utils.c
 SRC += ./src/test_functions.c
-# SRC += ./src/menues.c
+SRC += ./src/menues.c
+SRC += ./src/dmx_receiver.c
 # SRC += ./src/normal_mode.c
 # SRC += ./src/card_mode.c
 
@@ -216,6 +217,14 @@ tests:
 	# ./a.out
 	# sino copiar funcion a testear al main de tests.c
 	gcc src/tests.c
+	./a.out
+
+tests_dmx:
+	# first compile common modules (modules to test and dependencies)
+	gcc -c src/dmx_receiver.c -I. $(INCDIR) -DSTM32F030
+	# second auxiliary helper modules
+	gcc -c src/tests_ok.c -I $(INCDIR)
+	gcc src/tests_dmx.c dmx_receiver.o tests_ok.o
 	./a.out
 
 tests_lcd_menues:

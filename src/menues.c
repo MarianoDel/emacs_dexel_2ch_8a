@@ -63,8 +63,7 @@ resp_t MENU_Main (mem_bkp_t * configurations)
     resp_t resp = resp_continue;
     sw_actions_t actions = selection_none;
     unsigned char onoff = 0;
-    unsigned short time = 0;
-    unsigned int new_psw = 0;
+    unsigned short fchannel = 0;
 
     switch (menu_state)
     {
@@ -182,17 +181,18 @@ resp_t MENU_Main (mem_bkp_t * configurations)
     case MENU_CONF_MODE:
         actions = MENU_Check_Actions();
 
-        // time = configurations->treatment_time_min;
-        
-        resp = LCD_EncoderChange("minutos:        ",
-                                 &time,
-                                 MINIMUN_TIME_ALLOWED,
-                                 MAXIMUN_TIME_ALLOWED,
-                                 actions);
-
-        if (resp == resp_finish)
+        resp = LCD_EncoderShowSelect("Mode:  Manual   ",
+                                     "Mode:  DMX      ",
+                                     actions,
+                                     &onoff);
+                                     
+        if (resp == resp_selected)
         {
-            // configurations->treatment_time_min = time;
+            // if (onoff == 2)
+            //     configurations->operation_mode = DMX_MODE;
+            // else
+            //     configurations->operation_mode = MANUAL_MODE;
+
             menu_state = MENU_SHOW_MODE;
             resp = resp_continue;
         }
@@ -205,17 +205,31 @@ resp_t MENU_Main (mem_bkp_t * configurations)
     case MENU_CONF_CHANNEL:
         actions = MENU_Check_Actions();
 
-        // onoff = configurations->alarms_onoff;
-        resp = LCD_EncoderOptionsOnOff("Alarma          ",
-                                       &onoff,
-                                       actions);
+        // resp = LCD_EncoderChange("minutos:        ",
+        resp = LCD_EncoderChange("first ch:       ",                                 
+                                 &fchannel,
+                                 1,
+                                 511,
+                                 actions);
 
         if (resp == resp_finish)
         {
-            // configurations->alarms_onoff = onoff;            
+            // configurations->first_channel = fchannel;
             menu_state = MENU_SHOW_CHANNEL;
             resp = resp_continue;
         }
+
+        // onoff = configurations->alarms_onoff;
+        // resp = LCD_EncoderOptionsOnOff("Alarma          ",
+        //                                &onoff,
+        //                                actions);
+
+        // if (resp == resp_finish)
+        // {
+        //     // configurations->alarms_onoff = onoff;            
+        //     menu_state = MENU_SHOW_CHANNEL;
+        //     resp = resp_continue;
+        // }
 
         if (actions != selection_none)    //algo se cambio, aviso
             resp = resp_change;
@@ -226,12 +240,13 @@ resp_t MENU_Main (mem_bkp_t * configurations)
     case MENU_CONF_HARD:
         actions = MENU_Check_Actions();        
 
-        resp = LCD_EncoderShowSelect("Modo:  Manual   ",
-                                     "Modo:  Tarjeta  ",
-                                     actions,
-                                     &onoff);
+        resp = LCD_EncoderChange("Max current:    ",
+                                 &fchannel,
+                                 1,
+                                 10,
+                                 actions);
                                      
-        if (resp == resp_selected)
+        if (resp == resp_finish)
         {
             // if (onoff == 2)
             //     configurations->operation_mode = CARD_MODE;
@@ -252,7 +267,7 @@ resp_t MENU_Main (mem_bkp_t * configurations)
         actions = MENU_Check_Actions();
 
         onoff = 1;
-        resp = LCD_EncoderOptionsOnOff("Grabar Salir    ",
+        resp = LCD_EncoderOptionsOnOff("Save & Exit     ",
                                        &onoff,
                                        actions);
 

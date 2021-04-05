@@ -1034,7 +1034,8 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         Lcd_TransmitStr(primer_renglon);
         LCD_2DO_RENGLON;
         // Lcd_TransmitStr((const char *) "SET    or    < >");        
-        Lcd_TransmitStr((const char *) "<-> o Set Acepta");
+        // Lcd_TransmitStr((const char *) "<-> o Set Acepta");
+        Lcd_TransmitStr((const char *) "<-> or Select   ");        
         
         options_curr_sel = *bool_value;
         display_on_or_off = 1;
@@ -1045,7 +1046,10 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
     case OPTIONS_ONOFF_REDRAW:
         Lcd_SetDDRAM(13);
         if (options_curr_sel)
-            Lcd_TransmitStr(" Si");
+        {
+            // Lcd_TransmitStr(" Si");
+            Lcd_TransmitStr("Yes");            
+        }
         else
             Lcd_TransmitStr(" No");
 
@@ -1070,8 +1074,8 @@ resp_t LCD_EncoderOptionsOnOff (char * primer_renglon,
         if (actions == selection_enter)
         {
             LCD_2DO_RENGLON;
-            // Lcd_TransmitStr((const char *) "Selected...     ");
-            Lcd_TransmitStr((const char *) "Seleccionado... ");
+            Lcd_TransmitStr((const char *) "Selected...     ");
+            // Lcd_TransmitStr((const char *) "Seleccionado... ");
             options_state = OPTIONS_ONOFF_SELECT_OPTION;
         }
 
@@ -1155,7 +1159,8 @@ resp_t LCD_EncoderChange (char * primer_renglon,
         Lcd_TransmitStr(primer_renglon);
         LCD_2DO_RENGLON;
         // Lcd_TransmitStr((const char *) "SET    or    < >");
-        Lcd_TransmitStr((const char *) "<-> o Set Acepta");                
+        // Lcd_TransmitStr((const char *) "<-> o Set Acepta");
+        Lcd_TransmitStr((const char *) "<-> or Select   ");                        
 
         change_current_val = *orig_value;
         change_state_was_on = 1;
@@ -1175,7 +1180,8 @@ resp_t LCD_EncoderChange (char * primer_renglon,
             show_select_timer = TT_SHOW_SELECT_IN_ON;
             LCD_2DO_RENGLON;
             // Lcd_TransmitStr((const char *) "SET    or    ++>");
-            Lcd_TransmitStr((const char *) "++> o Set Acepta");                                
+            // Lcd_TransmitStr((const char *) "++> o Set Acepta");
+            Lcd_TransmitStr((const char *) "++> or Select   ");
         }
 
         if (actions == selection_dwn) 
@@ -1189,14 +1195,15 @@ resp_t LCD_EncoderChange (char * primer_renglon,
             show_select_timer = TT_SHOW_SELECT_IN_ON;
             LCD_2DO_RENGLON;
             // Lcd_TransmitStr((const char *) "SET    or    <--");
-            Lcd_TransmitStr((const char *) "<-- o Set Acepta");            
+            // Lcd_TransmitStr((const char *) "<-- o Set Acepta");
+            Lcd_TransmitStr((const char *) "<-- or Select   ");                        
         }
 
         if (actions == selection_enter)
         {
             LCD_2DO_RENGLON;
-            // Lcd_TransmitStr((const char *) "Selected...     ");
-            Lcd_TransmitStr((const char *) "Seleccionado... ");
+            Lcd_TransmitStr((const char *) "Selected...     ");
+            // Lcd_TransmitStr((const char *) "Seleccionado... ");
             change_state = CHANGE_SELECT_DONE;
         }
         
@@ -1209,7 +1216,8 @@ resp_t LCD_EncoderChange (char * primer_renglon,
                 Lcd_TransmitStr("   ");
                 LCD_2DO_RENGLON;
                 // Lcd_TransmitStr((const char *) "SET    or    < >");
-                Lcd_TransmitStr((const char *) "<-> o Set Acepta");                
+                // Lcd_TransmitStr((const char *) "<-> o Set Acepta");
+                Lcd_TransmitStr((const char *) "<-> or Select   ");
                 show_select_timer = TT_SHOW_SELECT_IN_OFF;
             }
             else

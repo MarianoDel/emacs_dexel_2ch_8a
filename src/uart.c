@@ -8,23 +8,31 @@
 // #### UART.C ################################
 //---------------------------------------------
 
-/* Includes ------------------------------------------------------------------*/
+// Includes --------------------------------------------------------------------
 #include "hard.h"
-#include "stm32f0xx.h"
 #include "uart.h"
+#include "dmx_receiver.h"
 
 #include <string.h>
 
 
+// Module Configs --------------------------------------------------------------
+// #define USART_ONLY_DMX
+
+
 // Externals -------------------------------------------------------------------
+#ifndef USART_ONLY_DMX
 extern volatile unsigned char usart1_have_data;
+#endif
 
 // Globals ---------------------------------------------------------------------
+#ifndef USART_ONLY_DMX
 volatile unsigned char * ptx1;
 volatile unsigned char * ptx1_pckt_index;
 volatile unsigned char * prx1;
 volatile unsigned char tx1buff[SIZEOF_TXDATA];
 volatile unsigned char rx1buff[SIZEOF_RXDATA];
+#endif
 
 // Module Private Types & Macros -----------------------------------------------
 
@@ -33,6 +41,7 @@ volatile unsigned char rx1buff[SIZEOF_RXDATA];
 
 
 // Module Functions ------------------------------------------------------------
+#ifndef USART_ONLY_DMX
 unsigned char Usart1ReadBuffer (unsigned char * bout, unsigned short max_len)
 {
     unsigned int len;
@@ -57,6 +66,7 @@ unsigned char Usart1ReadBuffer (unsigned char * bout, unsigned short max_len)
 
     return (unsigned char) len;
 }
+#endif
 
 void USART1_IRQHandler(void)
 {
@@ -67,29 +77,12 @@ void USART1_IRQHandler(void)
     {
         dummy = USART1->RDR & 0x0FF;
 
-        if (prx1 < &rx1buff[SIZEOF_RXDATA - 1])
-        {
-            if ((dummy == '\n') || (dummy == '\r') || (dummy == 26))		//26 es CTRL-Z
-            {
-                *prx1 = '\0';
-                usart1_have_data = 1;
-                if (LED)
-                	LED_OFF;
-                else
-                	LED_ON;
+        DMX_Int_Serial_Receiver_Handler (dummy);
 
-            }
-            else
-            {
-                *prx1 = dummy;
-                prx1++;
-            }
-        }
-        else
-            prx1 = rx1buff;    //soluciona problema bloqueo con garbage
     }
 
     /* USART in Transmit mode -------------------------------------------------*/
+#ifndef USART_ONLY_DMX
     if (USART1->CR1 & USART_CR1_TXEIE)
     {
         if (USART1->ISR & USART_ISR_TXE)
@@ -107,6 +100,7 @@ void USART1_IRQHandler(void)
             }
         }
     }
+#endif
 
     if ((USART1->ISR & USART_ISR_ORE) || (USART1->ISR & USART_ISR_NE) || (USART1->ISR & USART_ISR_FE))
     {
@@ -115,6 +109,8 @@ void USART1_IRQHandler(void)
     }
 }
 
+
+#ifndef USART_ONLY_DMX
 void Usart1Send (char * send)
 {
     unsigned char i;
@@ -137,6 +133,7 @@ void Usart1SendSingle(unsigned char tosend)
 {
     Usart1SendUnsigned(&tosend, 1);
 }
+#endif
 
 
 void Usart1Config(void)
@@ -144,21 +141,22 @@ void Usart1Config(void)
     if (!USART1_CLK)
         USART1_CLK_ON;
 
+#ifndef USART_ONLY_DMX
     ptx1 = tx1buff;
     ptx1_pckt_index = tx1buff;
     prx1 = rx1buff;
+#endif
 
-    USART1->BRR = USART_9600;
-//	USART1->CR2 |= USART_CR2_STOP_1;	//2 bits stop
+    USART1->BRR = USART_250000;
+    USART1->CR2 |= USART_CR2_STOP_1;	//2 bits stop
 //	USART1->CR1 = USART_CR1_RE | USART_CR1_TE | USART_CR1_UE;
-//	USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//SIN TX
-    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_TE | USART_CR1_UE;	//para pruebas TX
+    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//no TX
 
     unsigned int temp;
-    temp = GPIOB->AFR[0];
-    temp &= 0x00FFFFFF;
-    temp |= 0x00000000;    //PB7 -> AF0 PB6 -> AF0
-    GPIOB->AFR[0] = temp;
+    temp = GPIOA->AFR[1];
+    temp &= 0xFFFFF00F;
+    temp |= 0x00000110;    //PA10 -> AF1 PA9 -> AF1
+    GPIOA->AFR[1] = temp;
 
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_SetPriority(USART1_IRQn, 7);

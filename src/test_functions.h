@@ -30,7 +30,7 @@ void TF_lcdData (void);
 void TF_lcdBlink (void);
 void TF_lcdScroll (void);
 void TF_MenuFunction (void);
-void TF_Usart1_RxTx (void);
+void TF_Dmx_Packet (void);
 
 #endif    /* _TEST_FUNTIONS_H_ */
 

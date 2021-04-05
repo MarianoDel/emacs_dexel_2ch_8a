@@ -54,6 +54,7 @@
 #define PIN_AUX1    ((GPIOB->IDR & 0x0002) == 0)
 
 //GPIOA pin8    Exti input
+#define DMX_INPUT    ((GPIOA->IDR & 0x0100) != 0)
 
 //GPIOA pin9    NC
 

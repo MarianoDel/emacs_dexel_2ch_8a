@@ -22,6 +22,7 @@
 #include "lcd_utils.h"
 #include "test_functions.h"
 #include "parameters.h"
+#include "dmx_receiver.h"
 
 #include "spi.h"
 #include "uart.h"
@@ -35,6 +36,12 @@ extern char s_blank [];
 parameters_typedef * pmem = (parameters_typedef *) (unsigned int *) FLASH_PAGE_FOR_BKP;    //in flash
 parameters_typedef mem_conf;    //in ram
 volatile unsigned char usart1_have_data = 0;
+
+// for the dmx
+volatile unsigned char dmx_buff_data[SIZEOF_DMX_BUFFER_DATA];
+volatile unsigned char Packet_Detected_Flag = 0;
+volatile unsigned short DMX_channel_selected = 0;
+volatile unsigned char DMX_channel_quantity = 0;
 
 // Globals ---------------------------------------------------------------------
 //-- Timers globals ----------------------------------
@@ -70,7 +77,7 @@ int main(void)
     // TF_lcdBklight();
     // TF_lcdBlink();
     // TF_lcdScroll();
-    // TF_Usart1_RxTx ();
+    TF_Dmx_Packet ();
     // TF_MenuFunction();
 // #ifdef WITH_EXTI    
 //     TF_zcd_by_int();
@@ -496,16 +503,16 @@ void TimingDelay_Decrement(void)
     LCD_UpdateTimer();
 
     HARD_Timeouts();
+
+    DMX_Int_Millis_Handler();
 }
 
 
 #ifdef WITH_EXTI
 void EXTI4_15_IRQHandler(void)
 {
-#ifdef HARDWARE_VERSION_1_0
+    DMX_Int_Break_Handler();
     EXTI->PR |= 0x00000100;    //PA8
-#endif
-
 }
 #endif
 

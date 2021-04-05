@@ -25,6 +25,12 @@
 extern volatile unsigned short timer_standby;
 extern volatile unsigned char usart1_have_data;
 
+extern volatile unsigned char dmx_buff_data[];
+extern volatile unsigned char Packet_Detected_Flag;
+extern volatile unsigned short DMX_channel_selected;
+extern volatile unsigned char DMX_channel_quantity;
+
+
 // Globals ---------------------------------------------------------------------
 
 
@@ -254,35 +260,20 @@ void TF_lcdScroll (void)
 // }
 
 
-void TF_Usart1_RxTx (void)
+void TF_Dmx_Packet (void)
 {
-    for (unsigned char i = 0; i < 5; i++)
-    {
-        LED_ON;
-        Wait_ms(250);
-        LED_OFF;
-        Wait_ms(250);
-    }
-    
     Usart1Config();
+    TIM_14_Init();
+    DMX_channel_selected = 1;
+    DMX_channel_quantity = 2;
+    DMX_EnableRx();
 
-    char s_to_send [100] = { 0 };
-    Usart1Send("Ready to test...\n");
-    while (1)
+    if (Packet_Detected_Flag)
     {
-        if (usart1_have_data)
-        {
-            usart1_have_data = 0;
-            
-            if (LED)
-                LED_OFF;
-            else
-                LED_ON;
-            
-            Usart1ReadBuffer((unsigned char *) s_to_send, 100);
-            Wait_ms(1000);
-            Usart1Send(s_to_send);
-        }
+        Packet_Detected_Flag = 0;
+        LED_ON;
+        Wait_ms(2);
+        LED_OFF;
     }
 }
 
