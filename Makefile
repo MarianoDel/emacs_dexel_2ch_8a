@@ -73,7 +73,7 @@ SRC += $(BOOTDIR)/syscalls/syscalls.c
 
 # SRC += ./src/adc.c
 # SRC += ./src/dma.c
-# SRC += ./src/dsp.c
+SRC += ./src/dsp.c
 SRC += ./src/gpio.c
 SRC += ./src/hard.c
 SRC += ./src/it.c
@@ -86,12 +86,10 @@ SRC += ./src/lcd_utils.c
 SRC += ./src/test_functions.c
 SRC += ./src/menues.c
 SRC += ./src/dmx_receiver.c
-# SRC += ./src/normal_mode.c
+SRC += ./src/pwm.c
+SRC += ./src/dmx_mode.c
+SRC += ./src/dmx_lcd_menu.c
 # SRC += ./src/card_mode.c
-
-# SRC += ./src/mfrc522.c
-# SRC += ./src/card_utils.c
-# SRC += ./src/test_mfrc522.c
 
 
 
@@ -235,6 +233,31 @@ tests_lcd_menues:
 	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_lcd_menues.c -o tests_glade_lcd_menues.o
 	# link everithing
 	gcc tests_glade_lcd_menues.o lcd_utils.o menues.o `pkg-config --libs gtk+-3.0` -o tests_gtk
+	# run the simulation
+	# ./tests_gtk
+
+
+tests_dmx_lcd_menu:
+	# first compile common modules (modules to test and dependencies)
+	gcc -c src/lcd_utils.c -I. $(INCDIR)
+	gcc -c src/dmx_lcd_menu.c -I. $(INCDIR)
+	# then the gtk lib modules
+	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_dmx_lcd_menu.c -o tests_glade_dmx_lcd_menu.o
+	# link everithing
+	gcc tests_glade_dmx_lcd_menu.o lcd_utils.o dmx_lcd_menu.o `pkg-config --libs gtk+-3.0` -o tests_gtk
+	# run the simulation
+	# ./tests_gtk
+
+
+tests_dmx_mode:
+	# first compile common modules (modules to test and dependencies)
+	gcc -c src/lcd_utils.c -I. $(INCDIR)
+	gcc -c src/dmx_lcd_menu.c -I. $(INCDIR)
+	gcc -c src/dmx_mode.c -I. $(INCDIR)
+	# then the gtk lib modules
+	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_dmx_mode.c -o tests_glade_dmx_mode.o
+	# link everithing
+	gcc tests_glade_dmx_mode.o lcd_utils.o dmx_lcd_menu.o dmx_mode.o `pkg-config --libs gtk+-3.0` -o tests_gtk
 	# run the simulation
 	# ./tests_gtk
 

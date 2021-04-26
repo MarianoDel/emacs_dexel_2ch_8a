@@ -1,16 +1,16 @@
 //-------------------------------------------------
-// #### DEXEL 6CH BIDIRECTIONAL - Custom Board ####
+// #### DEXEL 2CH PROJECT - Custom Board ####
 // ##
 // ## @Author: Med
 // ## @Editor: Emacs - ggtags
 // ## @TAGS:   Global
 // ##
-// #### DMX1_MODE.H ###############################
+// #### DMX_MODE.H ###############################
 //-------------------------------------------------
 
 // Prevent recursive inclusion -------------------------------------------------
-#ifndef _DMX1_MODE_H_
-#define _DMX1_MODE_H_
+#ifndef _DMX_MODE_H_
+#define _DMX_MODE_H_
 
 //-- includes to help configurations --//
 #include "switches_answers.h"
@@ -21,11 +21,11 @@
 
 
 // Exported Module Functions ---------------------------------------------------
-resp_t DMX1Mode (unsigned char *, sw_actions_t);
-void DMX1ModeReset (void);
-void DMX1Mode_UpdateTimers (void);
+resp_t DMXMode (unsigned char *, sw_actions_t);
+void DMXModeReset (void);
+void DMXMode_UpdateTimers (void);
 
 
-#endif    /* _DMX1_MODE_H_ */
+#endif    /* _DMX_MODE_H_ */
 
 //--- end of file ---//

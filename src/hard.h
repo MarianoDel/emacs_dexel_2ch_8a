@@ -96,28 +96,6 @@
 #endif    //HARDWARE_VER_1_0
 
 // Exported Types & Macros -----------------------------------------------------
-// Main Program States
-typedef enum
-{    
-    MAIN_INIT = 0,
-    MAIN_INIT_FROM_TREATMENT,
-    MAIN_WELCOME,
-    MAIN_NORMAL_MODE_STANDBY,
-    MAIN_CARD_MODE_STANDBY,
-    MAIN_START_TREATMENT,
-    MAIN_IN_TREATMENT,
-    MAIN_GO_PAUSE,
-    MAIN_PAUSED,    
-    MAIN_RESUMING,
-    MAIN_ENDING_TREATMENT,
-    MAIN_ENTERING_SET_OR_MENU,
-    MAIN_WAIT_SET_OR_MENU,
-    MAIN_SET_TIME,
-    MAIN_IN_MAIN_MENU
-    
-} main_state_t;
-
-
 
 //Estados Externos de LED BLINKING
 #define LED_NO_BLINKING    0
@@ -134,6 +112,9 @@ typedef enum
 #define SWITCHES_THRESHOLD_HALF	50    //0.5 segundos
 #define SWITCHES_THRESHOLD_MIN	5    //25 ms
 
+
+#define CH1_VAL_OFFSET    0
+#define CH2_VAL_OFFSET    1
 
 //--- Stringtify Utils -----------------------
 #define str_macro(s) #s

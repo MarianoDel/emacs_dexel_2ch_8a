@@ -23,17 +23,32 @@
 #include "test_functions.h"
 #include "parameters.h"
 #include "dmx_receiver.h"
+#include "temperatures.h"
+#include "dsp.h"
+#include "pwm.h"
 
-#include "spi.h"
 #include "uart.h"
 
 #include <stdio.h>
 #include <string.h>
 
 
+// Module Types Constants and Macros -------------------------------------------
+typedef enum {
+    MAIN_INIT,
+    MAIN_HARD_INIT,
+    MAIN_CHECK_CONF,
+    MAIN_IN_DMX_MODE,
+    MAIN_IN_MANUAL_MODE,
+    MAIN_IN_OVERTEMP,
+    MAIN_IN_MAIN_MENU
+    
+} main_state_e;
+
+
 // Externals -------------------------------------------------------------------
 extern char s_blank [];
-parameters_typedef * pmem = (parameters_typedef *) (unsigned int *) FLASH_PAGE_FOR_BKP;    //in flash
+parameters_typedef * pflash_mem = (parameters_typedef *) (unsigned int *) FLASH_PAGE_FOR_BKP;    //in flash
 parameters_typedef mem_conf;    //in ram
 volatile unsigned char usart1_have_data = 0;
 
@@ -47,6 +62,22 @@ volatile unsigned char DMX_channel_quantity = 0;
 //-- Timers globals ----------------------------------
 volatile unsigned short timer_standby = 0;
 volatile unsigned short wait_ms_var = 0;
+volatile unsigned short need_to_save_timer = 0;
+
+//-- for the filters and outputs
+volatile unsigned char channels_values_int [2] = { 0 };
+volatile unsigned char enable_outputs_by_int = 0;
+ma16_u16_data_obj_t st_sp1;
+ma16_u16_data_obj_t st_sp2;
+unsigned short ch1_pwm = 0;
+unsigned short ch2_pwm = 0;
+
+
+// -- for the timeouts in the modes ----
+void (* ptFTT ) (void) = NULL;
+
+// -- for the memory -------------------
+unsigned char need_to_save = 0;
 
 
 
@@ -54,6 +85,8 @@ volatile unsigned short wait_ms_var = 0;
 void TimingDelay_Decrement(void);
 void EXTI4_15_IRQHandler(void);
 void SysTickError (void);
+void UpdateFiltersTest_Reset (void);
+void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val);
 
 
 // Module Functions ------------------------------------------------------------
@@ -86,410 +119,302 @@ int main(void)
 
     
     // Production Program ---------------------------
-//     TIM16_Init();    //synchro with relay
+    sw_actions_t action = selection_none;
+    resp_t resp = resp_continue;
+    unsigned char ch_values [2] = { 0 };
+    main_state_e main_state = MAIN_INIT;
     
-//     main_state_t main_state = MAIN_INIT;
-//     char s_lcd [100] = { 0 };
-//     resp_t resp = resp_continue;
-//     unsigned char lcd_l1_was_on = 0;
-//     unsigned char last_secs = 0;
-//     unsigned char barrita = 0;
+    while (1)
+    {
+        switch (main_state)
+        {
+        case MAIN_INIT:
+            // get saved config or create one for default
+            if (pflash_mem->program_type != 0xff)
+            {
+                //memory with valid data
+                memcpy(&mem_conf, pflash_mem, sizeof(parameters_typedef));
+            }
+            else
+            {
+                //hardware defaults
+                mem_conf.temp_prot = TEMP_IN_70;    //70 degrees
+                mem_conf.max_current_channels[0] = 255;
+                mem_conf.max_current_channels[1] = 255;
+                mem_conf.dmx_channel_quantity = 2;
+            }
 
-//     // para el lector de tarjetas
-//     Usart1Config();
-//     Usart1Send("usart on\n");
-//     SPI_Config();
-//     Usart1Send("spi on\n");
+            main_state++;
+            break;
 
+        case MAIN_HARD_INIT:
 
-//     LCD_UtilsInit();
-//     LCD_BigNumbersInit();
-    
-//     while (1)
-//     {
-//         switch(main_state)
-//         {
-//         case MAIN_INIT:    //arranque inicial
-//             LCD_ClearScreen();
+            //reseteo hardware
+            DMX_DisableRx();
 
-//             // configuracion desde la memoria
-//             memcpy(&configurations_in_mem, pmem, sizeof(mem_bkp_t));
+            //reseteo canales
+            PWMChannelsReset();
 
-//             // check empty mem
-//             if (configurations_in_mem.treatment_time_min == 0xff)
-//             {
-//                 //mem empty go for defaults
-//                 configurations_in_mem.treatment_time_min = 10;
-//                 configurations_in_mem.alarms_onoff = 1;
-//                 configurations_in_mem.ticker_onoff = 1;        
-//                 // configurations_in_mem.ticker_time = 60000;
-//                 configurations_in_mem.ticker_time = 2000;
-// #ifdef ON_EMPTY_MEM_INIT_CARD_MODE
-//                 // configurations_in_mem.operation_mode = NORMAL_MODE;
-//                 configurations_in_mem.operation_mode = CARD_MODE;
+            //limpio los filtros
+            UpdateFiltersTest_Reset();
+
+            main_state++;            
+            break;
+
+        case MAIN_CHECK_CONF:
+
+            if (mem_conf.program_type == DMX_MODE)
+            {
+                //reception variables
+                Packet_Detected_Flag = 0;
+                DMX_channel_selected = mem_conf.dmx_first_channel;
+                DMX_channel_quantity = mem_conf.dmx_channel_quantity;
+
+                // //Mode Timeout enable
+                // ptFTT = &DMX1Mode_UpdateTimers;
+
+                //packet reception enable
+                DMX_EnableRx();
+
+#ifdef CHECK_FILTERS_BY_INT
+                //habilito salidas si estoy con int
+                enable_outputs_by_int = 1;
+#endif
+                
+                DMXModeReset();
+                main_state = MAIN_IN_DMX_MODE;
+            }
+
+            if (mem_conf.program_type == MANUAL_MODE)
+            {
+                //habilito salidas si estoy con int
+                enable_outputs_by_int = 1;
+
+                // //Mode Timeout enable
+                // ptFTT = &ManualMode_UpdateTimers;
+                
+                ManualModeReset();
+                
+                main_state = MAIN_IN_MANUAL_MODE;
+            }
+            break;
+
+        case MAIN_IN_DMX_MODE:
+            // Check encoder first
+            action = CheckActions();
+            
+            resp = DMXMode (ch_values, action);
+
+            if (resp == resp_change)
+            {
+                for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
+                    channels_values_int[n] = ch_values[n];
+            }
+
+            if (resp == resp_need_to_save)
+            {
+                need_to_save_timer = 10000;
+                need_to_save = 1;
+            }
+
+            // if (CheckSET() > SW_MIN)
+            //     main_state = MAIN_ENTERING_MAIN_MENU;
+            
+            break;
+
+        case MAIN_IN_MANUAL_MODE:
+            // Check encoder first
+            action = CheckActions();
+
+            resp = ManualMode (&mem_conf, action);
+
+            if ((resp == resp_change) ||
+                (resp == resp_change_all_up))    //fixed mode save and change
+            {
+                for (unsigned char n = 0; n < sizeof(ch_values); n++)
+                    ch_values[n] = mem_conf.fixed_channels[n];
+
+                for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
+                    channels_values_int[n] = ch_values[n];
+
+                if (resp == resp_change_all_up)
+                    resp = resp_need_to_save;
+            }
+
+            if (resp == resp_need_to_save)
+            {
+                need_to_save_timer = 10000;
+                need_to_save = 1;
+            }
+
+            // if (CheckSET() > SW_MIN)
+            //     main_state = MAIN_ENTERING_MAIN_MENU;
+
+            break;
+
+        case MAIN_IN_OVERTEMP:
+            // main_state = MAIN_IN_OVERTEMP_B;
+            break;
+
+        // case MAIN_IN_OVERTEMP_B:
+        //     if (CheckTempReconnect (Temp_Channel, mem_conf.temp_prot))
+        //     {
+        //         //reconnect
+        //         main_state = MAIN_HARDWARE_INIT;
+        //     }
+        //     break;
+            
+//         case MAIN_ENTERING_MAIN_MENU:
+//             //deshabilitar salidas hardware
+//             DMX_DisableRx();
+
+// #ifdef CHECK_FILTERS_BY_INT
+//             enable_outputs_by_int = 0;
+//             for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
+//                 channels_values_int[n] = 0;
+            
 // #endif
-// #ifdef ON_EMPTY_MEM_INIT_NORMAL_MODE
-//                 configurations_in_mem.operation_mode = NORMAL_MODE;
-//                 // configurations_in_mem.operation_mode = CARD_MODE;
-// #endif
-//                 //el dummy1 lo uso como habilitacion de O3 en tarjeta
-//                 configurations_in_mem.dummy1 = 0;
-//             }
+//             //reseteo canales
+//             PWMChannelsReset();
+
+//             MainMenuReset();
             
-//             if (configurations_in_mem.operation_mode == CARD_MODE)
-//             {
-//                 Card_Mode_Standby_Reset ();
-//                 main_state = MAIN_CARD_MODE_STANDBY;
-//             }
-//             else
-//             {
-//                 Normal_Mode_Standby_Reset ();
-//                 main_state = MAIN_NORMAL_MODE_STANDBY;
-//             }
-            
-//             TIM16Enable();
+//             main_state++;
 //             break;
 
-//         case MAIN_INIT_FROM_TREATMENT:    //arranque cuando termino sesiones
-//             if (configurations_in_mem.operation_mode == CARD_MODE)
-//             {
-//                 Card_Mode_Standby_Init ();
-//                 main_state = MAIN_CARD_MODE_STANDBY;
-//             }
-//             else
-//             {
-//                 Normal_Mode_Standby_Reset ();
-//                 main_state = MAIN_NORMAL_MODE_STANDBY;
-//             }
-//             break;
-            
-//         case MAIN_NORMAL_MODE_STANDBY:
-//             Normal_Mode_Standby (&configurations_in_mem);
-            
-//             if (CheckO3() > SW_NO)
-//             {
-//                 treatment_running_mins = configurations_in_mem.treatment_time_min;
-//                 treatment_running_secs = 0;
-                
-//                 main_state = MAIN_START_TREATMENT;
-//             }
-
-//             if (CheckSET() > SW_NO)
-//                 main_state = MAIN_ENTERING_SET_OR_MENU;
-
-//             break;
-
-//         case MAIN_CARD_MODE_STANDBY:
-//             Card_Mode_Standby (&configurations_in_mem);
-
-//             if ((configurations_in_mem.dummy1) &&
-//                 (CheckO3() > SW_NO))
-//             {
-//                 treatment_running_mins = configurations_in_mem.dummy1;
-//                 configurations_in_mem.dummy1 = 0;
-//                 treatment_running_secs = 0;
-                
-//                 main_state = MAIN_START_TREATMENT;
-//             }
-
-//             if (CheckSET() > SW_MIN)
-//             {
-//                 timer_standby = 20000;
-//                 MENU_Main_Reset();
-//                 main_state = MAIN_IN_MAIN_MENU;
-//             }            
-//             break;
-            
-//         case MAIN_START_TREATMENT:
-//             if (CheckO3() == SW_NO)
-//             {
-//                 LCD_ClearScreen();
-//                 Lcd_SetDDRAM(14);
-//                 Lcd_TransmitStr("O3");
-//                 if (configurations_in_mem.alarms_onoff)
-//                     BuzzerCommands(BUZZER_LONG_CMD, 1);
-                
-//                 timer_ticker = configurations_in_mem.ticker_time;
-//                 RelayOn();
-
-//                 treatment_running = 1;
-//                 barrita = 0;
-//                 ChangeLed(LED_TREATMENT_GENERATING);
-//                 main_state = MAIN_IN_TREATMENT;
-//             }
-//             break;
-
-//         case MAIN_IN_TREATMENT:
-//             if (configurations_in_mem.ticker_onoff)
-//             {
-//                 if (!timer_ticker)
-//                 {
-//                     BuzzerCommands(BUZZER_SHORT_CMD, 1);
-//                     timer_ticker = configurations_in_mem.ticker_time;
-//                 }
-//             }
-
-//             if (CheckO3() > SW_NO)
-//             {
-//                 //freno contador aca?
-//                 treatment_running = 0;
-//                 main_state = MAIN_GO_PAUSE;
-//             }
-
-//             //Update del Display timer
-//             if (last_secs != treatment_running_secs)
-//             {
-//                 last_secs = treatment_running_secs;                
-//                 sprintf(s_lcd, "%02d", treatment_running_mins);
-//                 LCD_BigNumbers(0, s_lcd[0] - '0');
-//                 LCD_BigNumbers(3, s_lcd[1] - '0');
-
-//                 sprintf(s_lcd, "%02d", treatment_running_secs);
-//                 LCD_BigNumbers(7, s_lcd[0] - '0');
-//                 LCD_BigNumbers(10, s_lcd[1] - '0');
-
-//                 // y los dos puntos en los impares
-//                 if (last_secs & 0x01)
-//                 {
-//                     Lcd_SetDDRAM(0x06);
-//                     Lcd_senddata(0xa5);
-//                     Lcd_SetDDRAM(0x46);
-//                     Lcd_senddata(0xa5);
-//                 }
-//                 else
-//                 {
-//                     Lcd_SetDDRAM(0x06);
-//                     Lcd_senddata(' ');
-//                     Lcd_SetDDRAM(0x46);
-//                     Lcd_senddata(' ');
-//                 }
-//             }
-
-//             //Update del Display barrita
-//             if (!timer_standby)
-//             {
-//                 timer_standby = 300;
-                
-//                 switch(barrita)
-//                 {
-//                     case 0:
-//                         Lcd_SetDDRAM (0x4e);
-//                         Lcd_senddata(0xb0);
-//                         Lcd_senddata(0xb0);                        
-//                         barrita++;
-//                         break;
-
-//                     case 1:
-//                         Lcd_SetDDRAM (0x4e);
-//                         Lcd_senddata(0x2f);
-//                         Lcd_senddata(0x2f);                        
-//                         barrita++;
-//                         break;
-
-//                     case 2:
-//                         Lcd_SetDDRAM (0x4e);
-//                         Lcd_senddata(0x7c);
-//                         Lcd_senddata(0x7c);                        
-//                         barrita = 0;
-//                         break;
-
-//                 default:
-//                     barrita = 0;
-//                     break;
-//                 }
-//             }
-
-//             //terminacion de tratamiento
-//             if ((treatment_running_mins == 0) && (treatment_running_secs == 0))
-//                 main_state = MAIN_ENDING_TREATMENT;
-            
-//             break;
-            
-//         case MAIN_GO_PAUSE:
-//             if (CheckO3() == SW_NO)
-//             {
-//                 LCD_ClearScreen();
-//                 if (configurations_in_mem.alarms_onoff)
-//                     BuzzerCommands(BUZZER_SHORT_CMD, 3);
-                
-//                 RelayOff();
-//                 // LCD_Scroll2Reset();
-//                 barrita = 0;
-//                 ChangeLed(LED_TREATMENT_PAUSED);
-//                 main_state = MAIN_PAUSED;
-//             }
-//             break;
-
-//         case MAIN_PAUSED:
-
-//             if (!timer_standby)
-//             {
-//                 if (!lcd_l1_was_on)
-//                 {
-//                     LCD_Writel1("  O3 en Pausa  ");
-//                     timer_standby = 1000;
-//                     lcd_l1_was_on = 1;
-//                 }
-//                 else
-//                 {
-//                     LCD_Writel1(s_blank);
-//                     timer_standby = 1000;
-//                     lcd_l1_was_on = 0;                    
-//                 }
-//             }
-
-//             switch (barrita)
-//             {
-//             case 0:
-//                 LCD_Writel2("O3 si continua  ");
-//                 timer_barrita = 1200;
-//                 barrita++;
-//                 break;
-
-//             case 1:
-//                 if (!timer_barrita)
-//                 {
-//                     LCD_Writel2("SET si termina  ");
-//                     timer_barrita = 1200;
-//                     barrita++;
-//                 }
-//                 break;
-
-//             case 2:
-//                 if (!timer_barrita)
-//                     barrita = 0;
-
-//                 break;
-                
-//             default:
-//                 barrita = 0;
-//                 break;
-//             }
-            
-
-//             if (CheckO3() > SW_NO)
-//                 main_state = MAIN_RESUMING;
-
-//             if (CheckSET() > SW_NO)
-//                 main_state = MAIN_ENDING_TREATMENT;
-
-//             break;
-
-//         case MAIN_RESUMING:
-//             if (CheckO3() == SW_NO)
-//                 main_state = MAIN_START_TREATMENT;
-
-//             break;
-
-//         case MAIN_ENDING_TREATMENT:
+//         case MAIN_ENTERING_MAIN_MENU_WAIT_FREE:
 //             if (CheckSET() == SW_NO)
 //             {
-//                 if (configurations_in_mem.alarms_onoff)
-//                     // BuzzerCommands(BUZZER_LONG_CMD, 3);
-//                     BuzzerCommands(BUZZER_MULTI_CMD, 0);
-
-//                 RelayOff();
-//                 ChangeLed(LED_TREATMENT_STANDBY);
-//                 main_state = MAIN_INIT_FROM_TREATMENT;
-//             }
-//             break;
-
-//         case MAIN_ENTERING_SET_OR_MENU:
-//             LCD_1ER_RENGLON;
-//             Lcd_TransmitStr(" Entrando en    ");    
-//             LCD_2DO_RENGLON;
-//             Lcd_TransmitStr(" configuracion  ");
-
-//             timer_standby = 5000;
-//             main_state = MAIN_WAIT_SET_OR_MENU;
-//             break;
-                
-//         case MAIN_WAIT_SET_OR_MENU:
-//             if ((CheckSET() == SW_NO) && (timer_standby))
-//             {
-//                 timer_standby = 20000;
-//                 MENU_Encendido_Reset();
-//                 main_state = MAIN_SET_TIME;
-//             }
-
-//             if (!timer_standby)
-//             {
-//                 if (CheckSET() > SW_NO)
-//                 {
-//                     timer_standby = 20000;
-//                     MENU_Main_Reset();
-//                     main_state = MAIN_IN_MAIN_MENU;
-//                 }
-//                 else
-//                     main_state = MAIN_INIT;
-//             }
-//             break;
-
-//         case MAIN_SET_TIME:
-//             resp = MENU_Encendido(&configurations_in_mem);
-
-//             if (resp == resp_change)
-//                 timer_standby = 20000;
-            
-//             if (resp == resp_finish)
-//             {
-//                 timer_standby = 0;
-//                 main_state = MAIN_INIT_FROM_TREATMENT;
-//             }
-
-//             if (!timer_standby)    //time for conf ended
-//                 main_state = MAIN_INIT_FROM_TREATMENT;
-            
-//             break;
-
-//         case MAIN_IN_MAIN_MENU:
-//             resp = MENU_Main(&configurations_in_mem);
-
-//             if (resp == resp_change)
-//                 timer_standby = 20000;
-
-//             if (!timer_standby)
-//                 main_state = MAIN_INIT;
-
-//             if (resp == resp_finish)
-//             {
-//                 timer_standby = 0;
-//                 main_state = MAIN_INIT;
-//             }
-            
-//             if (resp == resp_need_to_save)
-//             {
-//                 __disable_irq();
-//                 resp = WriteConfigurations();
-//                 __enable_irq();
-
-//                 if (resp)
-//                 {
-//                     LCD_Writel1("Memoria grabada ");
-//                     LCD_Writel2(" correctamente  ");
-//                 }
-//                 else
-//                 {
-//                     LCD_Writel1("  Problemas!!!  ");
-//                     LCD_Writel2("Memoria no graba");
-//                 }
-//                 Wait_ms(1000);                    
-
-//                 timer_standby = 0;
-//                 main_state = MAIN_INIT;
+//                 main_state++;
 //             }
 //             break;
             
-//         default:
-//             main_state = MAIN_INIT;
-//             break;
-//         }
+        case MAIN_IN_MAIN_MENU:
+            // Check encoder first
+            action = CheckActions();
 
-//         UpdateLed();
-//         UpdateSwitches();
-//     }    
+            resp = MainMenu(&mem_conf, action);
+
+            if (resp == resp_need_to_save)
+            {
+#ifdef SAVE_FLASH_IMMEDIATE
+                need_to_save_timer = 0;
+#endif
+#ifdef SAVE_FLASH_WITH_TIMEOUT
+                need_to_save_timer = 10000;
+#endif
+                need_to_save = 1;
+                main_state = MAIN_HARD_INIT;
+            }
+            
+            if (resp == resp_finish)
+                main_state = MAIN_HARD_INIT;
+
+            // if (CheckSET() > SW_HALF)
+            //     main_state = MAIN_ENTERING_HARDWARE_MENU;
+            
+            break;
+
+        default:
+            main_state = MAIN_INIT;
+            break;
+        }
+
+        // memory savings after config
+        if ((need_to_save) && (!need_to_save_timer))
+        {
+            __disable_irq();
+            need_to_save = WriteConfigurations();
+            __enable_irq();
+
+
+            need_to_save = 0;
+        }
+
+        //the things that not depends on the main status
+        UpdateSwitches();
+        
+    }    //end of while 1
+
+    return 0;
 }
+
 //--- End of Main ---//
+
+
+typedef enum {
+    FILTERS_BKP_CHANNELS,
+    FILTERS_LIMIT_EACH_CHANNEL,
+    FILTERS_OUTPUTS,
+    FILTERS_DUMMY1,
+    FILTERS_DUMMY2
+    
+} filters_and_offsets_e;
+
+filters_and_offsets_e filters_sm = FILTERS_BKP_CHANNELS;
+unsigned char limit_output [2] = { 0 };
+void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
+{
+    unsigned short calc = 0;    
+    
+    switch (filters_sm)
+    {
+    case FILTERS_BKP_CHANNELS:
+        limit_output[0] = *(ch_dmx_val + 0);
+        limit_output[1] = *(ch_dmx_val + 1);
+        filters_sm++;
+        break;
+
+    case FILTERS_LIMIT_EACH_CHANNEL:
+        calc = limit_output[0] * mem_conf.max_current_channels[0];
+        calc >>= 8;
+        limit_output[0] = (unsigned char) calc;
+
+        calc = limit_output[1] * mem_conf.max_current_channels[1];
+        calc >>= 8;
+        limit_output[1] = (unsigned char) calc;
+
+        filters_sm++;
+        break;
+
+    case FILTERS_OUTPUTS:
+        // channel 1
+        ch1_pwm = MA16_U16Circular (
+            &st_sp1,
+            PWM_Map_From_Dmx(*(limit_output + CH1_VAL_OFFSET))
+            );
+        PWM_Update_CH1(ch1_pwm);
+
+        // channel 2
+        ch2_pwm = MA16_U16Circular (
+            &st_sp2,
+            PWM_Map_From_Dmx(*(limit_output + CH2_VAL_OFFSET))
+            );
+        PWM_Update_CH2(ch2_pwm);
+
+        filters_sm++;
+        break;
+        
+    case FILTERS_DUMMY1:
+        filters_sm++;
+        break;
+
+    case FILTERS_DUMMY2:
+        filters_sm = FILTERS_BKP_CHANNELS;
+        break;
+        
+    default:
+        filters_sm = FILTERS_BKP_CHANNELS;
+        break;
+    }
+}
+
+
+void UpdateFiltersTest_Reset (void)
+{
+    MA16_U16Circular_Reset(&st_sp1);
+    MA16_U16Circular_Reset(&st_sp2);
+}
 
 
 void TimingDelay_Decrement(void)
@@ -505,6 +430,10 @@ void TimingDelay_Decrement(void)
     HARD_Timeouts();
 
     DMX_Int_Millis_Handler();
+
+    if (enable_outputs_by_int)    
+        CheckFiltersAndOffsets_SM(channels_values_int);
+    
 }
 
 

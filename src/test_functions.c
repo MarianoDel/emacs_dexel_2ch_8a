@@ -17,6 +17,7 @@
 #include "lcd.h"
 #include "gpio.h"
 #include "uart.h"
+#include "dmx_receiver.h"
 
 #include <stdio.h>
 
