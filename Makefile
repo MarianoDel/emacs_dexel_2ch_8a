@@ -262,6 +262,18 @@ tests_dmx_mode:
 	# ./tests_gtk
 
 
+tests_manual_mode:
+	# first compile common modules (modules to test and dependencies)
+	gcc -c src/lcd_utils.c -I. $(INCDIR)
+	gcc -c src/manual_mode.c -I. $(INCDIR)
+	# then the gtk lib modules
+	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_manual_mode.c -o tests_glade_manual_mode.o
+	# link everithing
+	gcc tests_glade_manual_mode.o lcd_utils.o manual_mode.o `pkg-config --libs gtk+-3.0` -o tests_gtk
+	# run the simulation
+	# ./tests_gtk
+
+
 tests_lcd_blinking:
 	# first compile common modules (modules to test and dependencies)
 	gcc -c src/lcd_utils.c -I. $(INCDIR)
