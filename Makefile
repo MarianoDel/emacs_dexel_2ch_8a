@@ -88,6 +88,7 @@ SRC += ./src/menues.c
 SRC += ./src/dmx_receiver.c
 SRC += ./src/pwm.c
 SRC += ./src/dmx_mode.c
+SRC += ./src/manual_mode.c
 SRC += ./src/dmx_lcd_menu.c
 # SRC += ./src/card_mode.c
 

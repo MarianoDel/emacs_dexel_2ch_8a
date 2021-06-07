@@ -51,37 +51,43 @@
 //GPIOB pin0    Adc LM335_VO
 
 //GPIOB pin1
-#define PIN_AUX1    ((GPIOB->IDR & 0x0002) == 0)
+#define CTRL_BKL    ((GPIOB->ODR & 0x0002) != 0)
+#define CTRL_BKL_ON    (GPIOB->BSRR = 0x00000002)
+#define CTRL_BKL_OFF    (GPIOB->BSRR = 0x00020000)
+
 
 //GPIOA pin8    Exti input
 #define DMX_INPUT    ((GPIOA->IDR & 0x0100) != 0)
 
-//GPIOA pin9    NC
+//GPIOA pin9    F_CH1
 
 //GPIOA pin10    Usart1 Rx
 
-//GPIOA pin11    
+//GPIOA pin11    F_CH2
+
+//GPIOA pin12
 #define LED    ((GPIOA->ODR & 0x1000) == 0)
 #define LED_OFF    (GPIOA->BSRR = 0x00001000)
 #define LED_ON    (GPIOA->BSRR = 0x10000000)
 
-//GPIOA pin12
-#define PIN_AUX2    ((GPIOA->IDR & 0x1000) == 0)
 
 //GPIOA pin13
 //GPIOA pin14
 
-//GPIOA pin15
-#define PIN_AUX3    ((GPIOA->IDR & 0x8000) == 0)
+//GPIOA pin15    
+#define I_SEL    ((GPIOA->ODR & 0x8000) == 0)
+#define I_SEL_ON    (GPIOA->BSRR = 0x00008000)
+#define I_SEL_OFF    (GPIOA->BSRR = 0x80000000)
+
 
 //GPIOB pin3
-#define SW_DWN    ((GPIOB->IDR & 0x0008) == 0)
+#define SW_SEL    ((GPIOB->IDR & 0x0008) == 0)
 
 //GPIOB pin4
-#define SW_UP    ((GPIOB->IDR & 0x0010) == 0)
+#define SW_DWN    ((GPIOB->IDR & 0x0010) == 0)
 
 //GPIOB pin5
-#define SW_SEL    ((GPIOB->IDR & 0x0020) == 0)
+#define SW_UP    ((GPIOB->IDR & 0x0020) == 0)
 
 //GPIOB pin6
 #define CTRL_FAN    ((GPIOB->ODR & 0x0040) != 0)
@@ -89,9 +95,6 @@
 #define CTRL_FAN_OFF    (GPIOB->BSRR = 0x00400000)
 
 //GPIOB pin7
-#define CTRL_BKL    ((GPIOB->ODR & 0x0080) != 0)
-#define CTRL_BKL_ON    (GPIOB->BSRR = 0x00000080)
-#define CTRL_BKL_OFF    (GPIOB->BSRR = 0x00800000)
 
 #endif    //HARDWARE_VER_1_0
 
@@ -131,6 +134,7 @@ resp_sw_t Check_SW_DWN (void);
 resp_sw_t Check_SW_SEL (void);
 
 void UpdateSwitches (void);
+sw_actions_t CheckActions (void);
 
 
 #endif /* _HARD_H_ */

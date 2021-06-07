@@ -209,6 +209,22 @@ void UpdateSwitches (void)
 }
 
 
+sw_actions_t CheckActions (void)
+{
+    sw_actions_t sw = selection_none;
+    
+    if (Check_SW_UP () > SW_NO)
+        sw = selection_up;
+
+    if (Check_SW_DWN () > SW_NO)
+        sw = selection_dwn;
+
+    if (Check_SW_SEL () > SW_NO)
+        sw = selection_enter;
+    
+    return sw;
+    
+}
 
 //--- end of file ---//
 
