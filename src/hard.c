@@ -221,6 +221,9 @@ sw_actions_t CheckActions (void)
 
     if (Check_SW_SEL () > SW_NO)
         sw = selection_enter;
+
+    if (Check_SW_SEL () > SW_MIN)
+        sw = selection_back;
     
     return sw;
     

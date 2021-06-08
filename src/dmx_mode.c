@@ -13,6 +13,8 @@
 #include "dmx_lcd_menu.h"
 #include "parameters.h"
 
+#include "hard.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -58,8 +60,7 @@ unsigned char dmx_end_of_packet_update = 0;
 
 
 //-- timers del modulo --------------------
-// volatile unsigned short dmx_mode_enable_menu_timer = 0;
-// volatile unsigned short dmx_mode_dmx_receiving_timer = 0;
+volatile unsigned short dmx_mode_dmx_receiving_timer = 0;
 
 
 // Module Private Functions ----------------------------------------------------
@@ -71,10 +72,11 @@ void DMXMode_UpdateTimers (void)
     if (dmx_mode_enable_menu_timer)
         dmx_mode_enable_menu_timer--;
 
-    // if (dmx_mode_dmx_receiving_timer)
-    //     dmx_mode_dmx_receiving_timer--;
+    if (dmx_mode_dmx_receiving_timer)
+        dmx_mode_dmx_receiving_timer--;
 
 }
+
 
 void DMXModeReset (void)
 {
@@ -106,17 +108,13 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
             Packet_Detected_Flag = 0;
 
             //le aviso al menu que se estan recibiendo paquetes dmx
-            // dmx_mode_dmx_receiving_timer = TT_DMX_RECEIVING;            
+            dmx_mode_dmx_receiving_timer = TT_DMX_RECEIVING;
 
             if (dmx_buff_data[DMX_PKT_TYPE] == 0x00)    //dmx packet
             {
                 //update the colors channels
                 *(ch_val + 0) = dmx_buff_data[DMX_CLR_CH1];
                 *(ch_val + 1) = dmx_buff_data[DMX_CLR_CH2];
-                // *(ch_val + 2) = dmx_buff_data[DMX_CLR_CH3];
-                // *(ch_val + 3) = dmx_buff_data[DMX_CLR_CH4];
-                // *(ch_val + 4) = dmx_buff_data[DMX_CLR_CH5];
-                // *(ch_val + 5) = dmx_buff_data[DMX_CLR_CH6];
 
                 dmx_end_of_packet_update = 1;
                 resp = resp_change;
@@ -129,16 +127,24 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
             dmx_menu_data_t dmx_st;
             dmx_st.dmx_first_chnl = &mem_conf.dmx_first_channel;
             dmx_st.pchannels = ch_val;
+
             if (dmx_address_show)
                 dmx_st.show_addres = 1;
             else
                 dmx_st.show_addres = 0;
 
             resp = DMXLcdMenu(&dmx_st);
+
             if (resp == resp_finish)
                 dmx_end_of_packet_update = 0;
             
         }
+
+        if (!dmx_mode_dmx_receiving_timer)
+            CTRL_BKL_OFF;
+        else
+            CTRL_BKL_ON;
+        
         break;
 
     default:
@@ -179,6 +185,7 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
         
         }
     }
+    
     return resp;
             
 }

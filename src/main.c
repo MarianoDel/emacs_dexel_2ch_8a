@@ -11,14 +11,14 @@
 // Includes --------------------------------------------------------------------
 #include "hard.h"
 #include "stm32f0xx.h"
-#include "gpio.h"
 
-#include "core_cm0.h"
+#include "gpio.h"
 #include "tim.h"
+#include "uart.h"
 #include "flash_program.h"
+#include "core_cm0.h"
 
 #include "switches_answers.h"
-#include "lcd.h"
 #include "lcd_utils.h"
 #include "test_functions.h"
 #include "parameters.h"
@@ -30,8 +30,6 @@
 #include "dmx_mode.h"
 #include "manual_mode.h"
 #include "menues.h"
-
-#include "uart.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -45,6 +43,7 @@ typedef enum {
     MAIN_IN_DMX_MODE,
     MAIN_IN_MANUAL_MODE,
     MAIN_IN_OVERTEMP,
+    MAIN_ENTERING_MAIN_MENU,
     MAIN_IN_MAIN_MENU
     
 } main_state_e;
@@ -121,8 +120,32 @@ int main(void)
     // TF_lcdScroll();
     // TF_Dmx_Packet ();
     // TF_Dmx_Packet_Data ();
-    TF_Pwm_Channels ();
+    // TF_Pwm_Channels ();
     // End Hard Tests -------------------------------
+
+    // Hardware Inits. ---------------------------
+    // Timer for PWM
+    TIM_3_Init ();
+    PWMChannelsReset ();
+
+    // Usart and Timer for DMX
+    Usart1Config ();
+    TIM_14_Init ();
+    DMX_DisableRx ();
+
+    // LCD Init and Welcome Code
+    LCD_UtilsInit();
+    CTRL_BKL_ON;
+
+    while (LCD_ShowBlink("Kirno Technology",
+                         "  Smart Driver  ",
+                         1,
+                         BLINK_NO) != resp_finish);
+
+    while (LCD_ShowBlink(" Dexel          ",
+                         "  Lighting      ",
+                         2,
+                         BLINK_NO) != resp_finish);
 
     
     // Production Program ---------------------------
@@ -175,21 +198,19 @@ int main(void)
 
             if (mem_conf.program_type == DMX_MODE)
             {
-                //reception variables
+                // reception variables
                 Packet_Detected_Flag = 0;
                 DMX_channel_selected = mem_conf.dmx_first_channel;
                 DMX_channel_quantity = mem_conf.dmx_channel_quantity;
 
-                // //Mode Timeout enable
+                // Mode Timeout enable
                 ptFTT = &DMXMode_UpdateTimers;
 
-                //packet reception enable
+                // packet reception enable
                 DMX_EnableRx();
 
-#ifdef CHECK_FILTERS_BY_INT
-                //habilito salidas si estoy con int
+                // habilito salidas si estoy con int
                 enable_outputs_by_int = 1;
-#endif
                 
                 DMXModeReset();
                 main_state = MAIN_IN_DMX_MODE;
@@ -197,14 +218,16 @@ int main(void)
 
             if (mem_conf.program_type == MANUAL_MODE)
             {
-                //habilito salidas si estoy con int
+                // habilito salidas si estoy con int
                 enable_outputs_by_int = 1;
 
-                // //Mode Timeout enable
+                // Mode Timeout enable
                 ptFTT = &ManualMode_UpdateTimers;
+
+                for (unsigned char n = 0; n < sizeof(ch_values); n++)
+                    ch_values[n] = mem_conf.fixed_channels[n];
                 
-                ManualModeReset();
-                
+                ManualModeReset();                
                 main_state = MAIN_IN_MANUAL_MODE;
             }
             break;
@@ -212,23 +235,26 @@ int main(void)
         case MAIN_IN_DMX_MODE:
             // Check encoder first
             action = CheckActions();
-            
-            resp = DMXMode (ch_values, action);
 
-            if (resp == resp_change)
+            if (action != selection_back)
             {
-                for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
-                    channels_values_int[n] = ch_values[n];
-            }
+                
+                resp = DMXMode (ch_values, action);
 
-            if (resp == resp_need_to_save)
-            {
-                need_to_save_timer = 10000;
-                need_to_save = 1;
-            }
+                if (resp == resp_change)
+                {
+                    for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
+                        channels_values_int[n] = ch_values[n];
+                }
 
-            // if (CheckSET() > SW_MIN)
-            //     main_state = MAIN_ENTERING_MAIN_MENU;
+                if (resp == resp_need_to_save)
+                {
+                    need_to_save_timer = 10000;
+                    need_to_save = 1;
+                }
+            }
+            else
+                main_state = MAIN_ENTERING_MAIN_MENU;
             
             break;
 
@@ -236,29 +262,27 @@ int main(void)
             // Check encoder first
             action = CheckActions();
 
-            resp = ManualMode (ch_values, action);
-
-            if ((resp == resp_change) ||
-                (resp == resp_change_all_up))    //fixed mode save and change
+            if (action != selection_back)
             {
-                for (unsigned char n = 0; n < sizeof(ch_values); n++)
-                    mem_conf.fixed_channels[n] = ch_values[n];
+                resp = ManualMode (ch_values, action);
 
-                for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
-                    channels_values_int[n] = ch_values[n];
+                if (resp == resp_change)
+                {
+                    for (unsigned char n = 0; n < sizeof(ch_values); n++)
+                    {
+                        mem_conf.fixed_channels[n] = ch_values[n];
+                        channels_values_int[n] = ch_values[n];
+                    }
+                }
 
-                if (resp == resp_change_all_up)
-                    resp = resp_need_to_save;
+                if (resp == resp_need_to_save)
+                {
+                    need_to_save_timer = 10000;
+                    need_to_save = 1;
+                }
             }
-
-            if (resp == resp_need_to_save)
-            {
-                need_to_save_timer = 10000;
-                need_to_save = 1;
-            }
-
-            // if (CheckSET() > SW_MIN)
-            //     main_state = MAIN_ENTERING_MAIN_MENU;
+            else
+                main_state = MAIN_ENTERING_MAIN_MENU;
 
             break;
 
@@ -274,34 +298,25 @@ int main(void)
         //     }
         //     break;
             
-//         case MAIN_ENTERING_MAIN_MENU:
-//             //deshabilitar salidas hardware
-//             DMX_DisableRx();
+        case MAIN_ENTERING_MAIN_MENU:
+            //deshabilitar salidas hardware
+            DMX_DisableRx();
 
-// #ifdef CHECK_FILTERS_BY_INT
-//             enable_outputs_by_int = 0;
-//             for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
-//                 channels_values_int[n] = 0;
+            enable_outputs_by_int = 0;
+            for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
+                channels_values_int[n] = 0;
             
-// #endif
-//             //reseteo canales
-//             PWMChannelsReset();
+            //reseteo canales
+            PWMChannelsReset();
 
-//             MainMenuReset();
+            MENU_Main_Reset();
             
-//             main_state++;
-//             break;
+            main_state++;
+            break;
 
-//         case MAIN_ENTERING_MAIN_MENU_WAIT_FREE:
-//             if (CheckSET() == SW_NO)
-//             {
-//                 main_state++;
-//             }
-//             break;
-            
         case MAIN_IN_MAIN_MENU:
-            // Check encoder first
-            // action = CheckActions();
+            action = CheckActions();
+            
             resp = MENU_Main(&mem_conf, action);
 
             if (resp == resp_need_to_save)
@@ -336,11 +351,10 @@ int main(void)
             need_to_save = WriteConfigurations();
             __enable_irq();
 
-
             need_to_save = 0;
         }
 
-        //the things that not depends on the main status
+        // things that not depends on the main status
         UpdateSwitches();
         
     }    //end of while 1
@@ -434,6 +448,9 @@ void TimingDelay_Decrement(void)
     if (timer_standby)
         timer_standby--;
 
+    if (need_to_save_timer)
+        need_to_save_timer--;
+    
     LCD_UpdateTimer();
 
     HARD_Timeouts();

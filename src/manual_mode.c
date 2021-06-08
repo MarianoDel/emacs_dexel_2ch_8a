@@ -163,6 +163,8 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
             show_option = 1;
             DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
             mm_menu_timer = TT_SHOW_OPTIONS;
+
+            resp = resp_change;
         }
 
         if (sw == selection_dwn)
@@ -173,6 +175,8 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
             show_option = 1;
             DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
             mm_menu_timer = TT_SHOW_OPTIONS;
+
+            resp = resp_change;            
         }
 
         if (sw == selection_enter)
@@ -224,6 +228,8 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
             show_option = 1;
             DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
             mm_menu_timer = TT_SHOW_OPTIONS;
+
+            resp = resp_change;            
         }
 
         if (sw == selection_dwn)
@@ -234,6 +240,8 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
             show_option = 1;
             DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
             mm_menu_timer = TT_SHOW_OPTIONS;
+
+            resp = resp_change;            
         }
 
         if (sw == selection_enter)

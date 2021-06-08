@@ -182,10 +182,10 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
                                      
         if (resp == resp_selected)
         {
-            // if (onoff == 2)
-            //     configurations->operation_mode = DMX_MODE;
-            // else
-            //     configurations->operation_mode = MANUAL_MODE;
+            if (onoff == 2)
+                configurations->program_type = DMX_MODE;
+            else
+                configurations->program_type = MANUAL_MODE;
 
             menu_state = MENU_SHOW_MODE;
             resp = resp_continue;
