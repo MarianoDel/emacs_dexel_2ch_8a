@@ -209,14 +209,12 @@ clean:
 	rm -f *.o
 	rm -f *.out
 
+
 tests:
-	# primero objetos de los modulos a testear, solo si son tipo HAL sin dependencia del hard
-	# gcc -c src/lcd.c -I. $(INCDIR)
-	# gcc src/tests.c lcd.o
-	# ./a.out
-	# sino copiar funcion a testear al main de tests.c
+	# simple functions tests, copy functions to tests module into main
 	gcc src/tests.c
 	./a.out
+
 
 tests_dmx:
 	# first compile common modules (modules to test and dependencies)
@@ -225,6 +223,18 @@ tests_dmx:
 	gcc -c src/tests_ok.c -I $(INCDIR)
 	gcc src/tests_dmx.c dmx_receiver.o tests_ok.o
 	./a.out
+
+
+tests_lcd_blinking:
+	# first compile common modules (modules to test and dependencies)
+	gcc -c src/lcd_utils.c -I. $(INCDIR)
+	# then the gtk lib modules
+	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_lcd_blinking.c -o tests_glade_lcd_blinking.o
+	# link everything
+	gcc tests_glade_lcd_blinking.o lcd_utils.o `pkg-config --libs gtk+-3.0` -o tests_gtk
+	# run the simulation
+	# ./tests_gtk
+
 
 tests_lcd_menues:
 	# first compile common modules (modules to test and dependencies)
@@ -271,17 +281,6 @@ tests_manual_mode:
 	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_manual_mode.c -o tests_glade_manual_mode.o
 	# link everithing
 	gcc tests_glade_manual_mode.o lcd_utils.o manual_mode.o `pkg-config --libs gtk+-3.0` -o tests_gtk
-	# run the simulation
-	# ./tests_gtk
-
-
-tests_lcd_blinking:
-	# first compile common modules (modules to test and dependencies)
-	gcc -c src/lcd_utils.c -I. $(INCDIR)
-	# then the gtk lib modules
-	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_lcd_blinking.c -o tests_glade_lcd_blinking.o
-	# link everything
-	gcc tests_glade_lcd_blinking.o lcd_utils.o `pkg-config --libs gtk+-3.0` -o tests_gtk
 	# run the simulation
 	# ./tests_gtk
 

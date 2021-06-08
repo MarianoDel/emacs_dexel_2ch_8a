@@ -93,8 +93,8 @@ void GPIO_Config (void)
     GPIOA->OTYPER = temp;
     
     temp = GPIOA->OSPEEDR;	//2 bits por pin
-    temp &= 0xFFFFF000;
-    temp |= 0x00000000;		//low speed
+    temp &= 0xFFFF0000;    
+    temp |= 0x00000000;    //PA0 - PA7 low speed
     GPIOA->OSPEEDR = temp;
 
     temp = GPIOA->PUPDR;	//2 bits por pin

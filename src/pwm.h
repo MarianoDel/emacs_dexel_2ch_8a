@@ -35,8 +35,8 @@
 #define DisablePreload_PWM5    DisablePreload_TIM1_CH2
 #define DisablePreload_PWM6    DisablePreload_TIM1_CH1
 
-#define PWM_Update_CH1(X)    Update_TIM3_CH4(X)
-#define PWM_Update_CH2(X)    Update_TIM3_CH3(X)
+#define PWM_Update_CH1(X)    Update_TIM3_CH1(X)
+#define PWM_Update_CH2(X)    Update_TIM3_CH2(X)
 
 
 

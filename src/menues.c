@@ -1,5 +1,5 @@
 //-----------------------------------------------
-// #### PROJECT: O3 TREATMENT - Custom Board ####
+// #### DEXEL 2CH PROJECT - Custom Board ####
 // ##
 // ## @Author: Med
 // ## @Editor: Emacs - ggtags
@@ -58,10 +58,9 @@ void MENU_Main_Reset (void)
 
 //funcion de seleccion del menu principal
 //devuelve nueva selección o estado anterior
-resp_t MENU_Main (mem_bkp_t * configurations)
+resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
 {
     resp_t resp = resp_continue;
-    sw_actions_t actions = selection_none;
     unsigned char onoff = 0;
     unsigned short fchannel = 0;
 
@@ -76,7 +75,7 @@ resp_t MENU_Main (mem_bkp_t * configurations)
         if (resp == resp_finish)
         {
             resp = resp_continue;
-            if (Check_SW_SEL() == SW_NO)
+            if (sw_action == selection_none)
             {
                 LCD_ShowSelectv2Reset();
                 menu_state++;
@@ -86,10 +85,9 @@ resp_t MENU_Main (mem_bkp_t * configurations)
 
         // Options Menues        
     case MENU_SHOW_MODE:
-        actions = MENU_Check_Actions();
         
         resp = LCD_ShowSelectv2((const char *) "Operation Mode  ",
-                                actions);
+                                sw_action);
 
         if (resp == resp_change)
             menu_state = MENU_SHOW_END_CONF;
@@ -103,16 +101,15 @@ resp_t MENU_Main (mem_bkp_t * configurations)
             menu_state = MENU_CONF_MODE;
         }
 
-        if (actions != selection_none)    //algo se cambio, aviso
-            resp = resp_change;
+        // if (sw_action != selection_none)    //algo se cambio, aviso
+        //     resp = resp_change;
 
         break;
         
     case MENU_SHOW_CHANNEL:
-        actions = MENU_Check_Actions();
         
         resp = LCD_ShowSelectv2((const char *) "DMX channel sel ",
-                                actions);
+                                sw_action);
 
         if (resp == resp_change)
             menu_state = MENU_SHOW_MODE;
@@ -126,16 +123,15 @@ resp_t MENU_Main (mem_bkp_t * configurations)
             menu_state = MENU_CONF_CHANNEL;
         }
 
-        if (actions != selection_none)    //algo se cambio, aviso
-            resp = resp_change;
+        // if (actions != selection_none)    //algo se cambio, aviso
+        //     resp = resp_change;
 
         break;
 
     case MENU_SHOW_HARD:
-        actions = MENU_Check_Actions();
         
         resp = LCD_ShowSelectv2((const char *) "Hardware config ",
-                                actions);
+                                sw_action);
 
         if (resp == resp_change)
             menu_state = MENU_SHOW_CHANNEL;
@@ -149,16 +145,15 @@ resp_t MENU_Main (mem_bkp_t * configurations)
             menu_state = MENU_CONF_HARD;
         }
 
-        if (actions != selection_none)    //algo se cambio, aviso
-            resp = resp_change;
+        // if (actions != selection_none)    //algo se cambio, aviso
+        //     resp = resp_change;
 
         break;
         
     case MENU_SHOW_END_CONF:
-        actions = MENU_Check_Actions();
 
         resp = LCD_ShowSelectv2((const char *) "Save new config ",
-                                actions);
+                                sw_action);
 
         if (resp == resp_change)
             menu_state = MENU_SHOW_HARD;
@@ -172,18 +167,17 @@ resp_t MENU_Main (mem_bkp_t * configurations)
             menu_state = MENU_END_CONF;
         }
 
-        if (actions != selection_none)    //algo se cambio, aviso
-            resp = resp_change;
+        // if (actions != selection_none)    //algo se cambio, aviso
+        //     resp = resp_change;
         
         break;
         
         // Configuration Menues
     case MENU_CONF_MODE:
-        actions = MENU_Check_Actions();
 
         resp = LCD_EncoderShowSelect("Mode:  Manual   ",
                                      "Mode:  DMX      ",
-                                     actions,
+                                     sw_action,
                                      &onoff);
                                      
         if (resp == resp_selected)
@@ -197,20 +191,19 @@ resp_t MENU_Main (mem_bkp_t * configurations)
             resp = resp_continue;
         }
 
-        if (actions != selection_none)    //algo se cambio, aviso
-            resp = resp_change;
+        // if (actions != selection_none)    //algo se cambio, aviso
+        //     resp = resp_change;
 
         break;
 
     case MENU_CONF_CHANNEL:
-        actions = MENU_Check_Actions();
 
         // resp = LCD_EncoderChange("minutos:        ",
         resp = LCD_EncoderChange("first ch:       ",                                 
                                  &fchannel,
                                  1,
                                  511,
-                                 actions);
+                                 sw_action);
 
         if (resp == resp_finish)
         {
@@ -231,20 +224,19 @@ resp_t MENU_Main (mem_bkp_t * configurations)
         //     resp = resp_continue;
         // }
 
-        if (actions != selection_none)    //algo se cambio, aviso
-            resp = resp_change;
+        // if (actions != selection_none)    //algo se cambio, aviso
+        //     resp = resp_change;
 
         break;
 
 
     case MENU_CONF_HARD:
-        actions = MENU_Check_Actions();        
 
         resp = LCD_EncoderChange("Max current:    ",
                                  &fchannel,
                                  1,
                                  10,
-                                 actions);
+                                 sw_action);
                                      
         if (resp == resp_finish)
         {
@@ -257,19 +249,18 @@ resp_t MENU_Main (mem_bkp_t * configurations)
             resp = resp_continue;
         }
 
-        if (actions != selection_none)    //algo se cambio, aviso
-            resp = resp_change;
+        // if (actions != selection_none)    //algo se cambio, aviso
+        //     resp = resp_change;
         
         break;
 
         
     case MENU_END_CONF:
-        actions = MENU_Check_Actions();
 
         onoff = 1;
         resp = LCD_EncoderOptionsOnOff("Save & Exit     ",
                                        &onoff,
-                                       actions);
+                                       sw_action);
 
         if (resp == resp_finish)
         {
@@ -280,8 +271,8 @@ resp_t MENU_Main (mem_bkp_t * configurations)
 
             menu_state = MENU_INIT;
         }
-        else if (actions != selection_none)    //algo se cambio, aviso
-            resp = resp_change;
+        // else if (actions != selection_none)    //algo se cambio, aviso
+        //     resp = resp_change;
 
         break;
         
@@ -290,96 +281,8 @@ resp_t MENU_Main (mem_bkp_t * configurations)
         break;
     }
 
-    UpdateSwitches();
-    
     return resp;
 }
-
-
-sw_actions_t MENU_Check_Actions (void)
-{
-    sw_actions_t actions = selection_none;
-    
-    if (Check_SW_SEL() > SW_NO)
-        actions = selection_enter;
-
-    if (Check_SW_DWN())
-        actions = selection_dwn;
-
-    if (Check_SW_UP())
-        actions = selection_up;
-
-    return actions;
-}
-
-// void MENU_Encendido_Reset (void)
-// {
-//     menu_enc_state = MENU_ENC_INIT;
-// }
-
-
-// resp_t MENU_Encendido (mem_bkp_t * configurations)
-// {
-//     resp_t resp = resp_continue;
-//     sw_actions_t actions = selection_none;
-//     unsigned short time = 0;
-
-//     switch (menu_enc_state)
-//     {
-//     case MENU_ENC_INIT:
-//         resp = LCD_ShowBlink ("Entrando en conf",
-//                               "Tiempo Encendido",
-//                               1,
-//                               BLINK_DIRECT);
-
-//         if (resp == resp_finish)
-//         {
-//             resp = resp_continue;
-//             if (CheckSET() == SW_NO)
-//             {
-//                 LCD_EncoderChangeReset();
-//                 menu_enc_state++;
-//             }
-//         }
-//         break;
-        
-//     case MENU_ENC_TIEMPO_ENCENDIDO:
-//         if (CheckSET() > SW_NO)
-//             actions = selection_enter;
-
-//         if (CheckCCW())
-//             actions = selection_dwn;
-
-//         if (CheckCW())
-//             actions = selection_up;
-
-//         time = configurations->treatment_time_min;
-        
-//         resp = LCD_EncoderChange("Encendido:      ",
-//                                  &time,
-//                                  MINIMUN_TIME_ALLOWED,
-//                                  MAXIMUN_TIME_ALLOWED,
-//                                  actions);
-
-//         if (resp == resp_finish)
-//         {
-//             configurations->treatment_time_min = time;
-//             menu_enc_state = MENU_ENC_INIT;
-//         }
-//         else if (actions != selection_none)    //algo se cambio, aviso
-//             resp = resp_change;
-                
-//         break;
-
-//     default:
-//         menu_enc_state = MENU_ENC_INIT;
-//         break;
-//     }
-
-//     UpdateEncoder();
-    
-//     return resp;
-// }
 
 
 //--- end of file ---//

@@ -12,7 +12,7 @@
 #include "parameters.h"
 
 
-
+#define configurations_in_mem    mem_conf
 /* Externals variables ---------------------------------------------------------*/
 extern parameters_typedef configurations_in_mem;
 

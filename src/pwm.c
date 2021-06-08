@@ -29,8 +29,8 @@
 // Module Functions ------------------------------------------------------------
 void PWMChannelsReset (void)
 {
-    PWM_Update_CH1(0);
-    PWM_Update_CH2(0);
+    PWM_Update_CH1(DUTY_NONE);
+    PWM_Update_CH2(DUTY_NONE);
 }
 
 

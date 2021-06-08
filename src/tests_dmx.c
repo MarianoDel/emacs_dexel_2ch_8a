@@ -20,18 +20,14 @@
 
 
 // Globals ---------------------------------------------------------------------
-unsigned char usart1_have_data = 0;
-char new_uart_msg [200] = { 0 };
-char last_uart_sended [200] = { 0 };
+// unsigned char usart1_have_data = 0;
+// char new_uart_msg [200] = { 0 };
+// char last_uart_sended [200] = { 0 };
 int exti_is_on = 0;
 
 
 
 // Module Auxialiary Functions -------------------------------------------------
-void Usart1Send (char * msg);
-unsigned char Usart1ReadBuffer (unsigned char * bout, unsigned short max_len);
-void EXTIOn (void);
-void EXTIOff (void);
 
 
 // Module Functions for testing ------------------------------------------------
@@ -59,6 +55,8 @@ extern unsigned char dmx_receive_flag;
 
 void Test_Comms (void)
 {
+    printf("Testing DMX receiver routines\n");
+    
     // Test receiver routine
     dmx_receive_flag = 1;
     DMX_channel_selected = 1;
@@ -74,6 +72,15 @@ void Test_Comms (void)
            dmx_buff_data[1],
            dmx_buff_data[2]);
 
+    printf("Testing first channels: ");
+    if ((dmx_buff_data[0] == 0) &&
+        (dmx_buff_data[1] == 1) &&
+        (dmx_buff_data[2] == 2))
+        PrintOK();
+    else
+        PrintERR();
+    
+
     // test not rx
     dmx_receive_flag = 0;
     for (int i = 0; i < 512; i++)
@@ -86,6 +93,14 @@ void Test_Comms (void)
            dmx_buff_data[0],
            dmx_buff_data[1],
            dmx_buff_data[2]);
+
+    printf("Testing not DMX allowed: ");
+    if ((dmx_buff_data[0] == 0) &&
+        (dmx_buff_data[1] == 1) &&
+        (dmx_buff_data[2] == 2))
+        PrintOK();
+    else
+        PrintERR();
     
 
     // test last allowed channel
@@ -110,39 +125,30 @@ void Test_Comms (void)
            dmx_buff_data[0],
            dmx_buff_data[1],
            dmx_buff_data[2]);
-    
-    
-}
 
-
-unsigned char Usart1ReadBuffer (unsigned char * bout, unsigned short max_len)
-{
-    unsigned char len = 0;
-    len = strlen(new_uart_msg);
-    if (max_len > len)
-        strcpy(bout, new_uart_msg);
+    printf("Testing last channels: ");
+    if ((dmx_buff_data[0] == 0) &&
+        (dmx_buff_data[1] == 254) &&
+        (dmx_buff_data[2] == 255))
+        PrintOK();
     else
-        printf("error on Usart1ReadBuffer max_len\n");
-
-    return len;
-}
-
-
-void Usart1Send (char * msg)
-{
-    strcpy(last_uart_sended, msg);
+        PrintERR();
+    
+    
 }
 
 
 void EXTIOn (void)
 {
     exti_is_on = 1;
+    printf("EXTI is on\n");
 }
 
 
 void EXTIOff (void)
 {
     exti_is_on = 0;
+    printf("EXTI is off\n");
 }
 
 

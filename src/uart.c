@@ -17,7 +17,7 @@
 
 
 // Module Configs --------------------------------------------------------------
-// #define USART_ONLY_DMX
+#define USART_ONLY_DMX
 
 
 // Externals -------------------------------------------------------------------
@@ -154,8 +154,8 @@ void Usart1Config(void)
 
     unsigned int temp;
     temp = GPIOA->AFR[1];
-    temp &= 0xFFFFF00F;
-    temp |= 0x00000110;    //PA10 -> AF1 PA9 -> AF1
+    temp &= 0xFFFFF0FF;
+    temp |= 0x00000100;    //PA10 -> AF1
     GPIOA->AFR[1] = temp;
 
     NVIC_EnableIRQ(USART1_IRQn);

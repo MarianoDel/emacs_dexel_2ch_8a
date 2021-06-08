@@ -18,14 +18,12 @@
 #include "gpio.h"
 #include "uart.h"
 #include "dmx_receiver.h"
+#include "pwm.h"
 
 #include <stdio.h>
 
 
 // Externals -------------------------------------------------------------------
-extern volatile unsigned short timer_standby;
-extern volatile unsigned char usart1_have_data;
-
 extern volatile unsigned char dmx_buff_data[];
 extern volatile unsigned char Packet_Detected_Flag;
 extern volatile unsigned short DMX_channel_selected;
@@ -204,63 +202,6 @@ void TF_lcdScroll (void)
 }
 
 
-
-// void TF_MenuFunction (void)
-// {
-//     char s_lcd[20] = { 0 };
-//     resp_t resp = resp_continue;
-    
-//     LCD_UtilsInit();
-//     CTRL_BKL_ON;
-
-//     Wait_ms(500);
-//     LCD_PasswordReset ();
-//     unsigned int new_psw = 0;
-    
-//     while (1)
-//     {
-//         sw_actions_t actions = selection_none;
-
-//         if (CheckSET() > SW_NO)
-//             actions = selection_enter;
-
-//         if (CheckCCW())
-//             actions = selection_dwn;
-
-//         if (CheckCW())
-//             actions = selection_up;
-        
-//         resp = LCD_Password ("Ingrese Password", actions, &new_psw);
-
-//         if (resp == resp_selected)
-//         {
-//             if (new_psw != 0x00000022)
-//             {
-//                 LCD_1ER_RENGLON;
-//                 Lcd_TransmitStr("El nuevo pass:  ");
-//                 sprintf(s_lcd, "0x%08x        ", new_psw);
-//                 LCD_2DO_RENGLON;
-//                 Lcd_TransmitStr(s_lcd);
-//                 Wait_ms(5000);
-//             }
-//             else
-//             {
-//                 LCD_1ER_RENGLON;
-//                 Lcd_TransmitStr("    Password    ");                
-//                 LCD_2DO_RENGLON;
-//                 Lcd_TransmitStr("   Correcto!!!  ");
-//                 Wait_ms(2000);
-//             }
-
-//             actions = selection_none;
-//             LCD_PasswordReset ();
-//         }
-//         UpdateSwitches();
-//         UpdateEncoder();
-//     }
-// }
-
-
 void TF_Dmx_Packet (void)
 {
     Usart1Config();
@@ -269,15 +210,78 @@ void TF_Dmx_Packet (void)
     DMX_channel_quantity = 2;
     DMX_EnableRx();
 
-    if (Packet_Detected_Flag)
+    while (1)
     {
-        Packet_Detected_Flag = 0;
-        LED_ON;
-        Wait_ms(2);
-        LED_OFF;
+        if (Packet_Detected_Flag)
+        {
+            Packet_Detected_Flag = 0;
+            LED_ON;
+            Wait_ms(2);
+            LED_OFF;
+        }
     }
 }
 
 
+void TF_Dmx_Packet_Data (void)
+{
+    // Init LCD
+    LCD_UtilsInit();
+    CTRL_BKL_ON;
+    LCD_ClearScreen();
+    Wait_ms(1000);
+
+    // Init DMX
+    Usart1Config();
+    TIM_14_Init();
+    DMX_channel_selected = 1;
+    DMX_channel_quantity = 2;
+    DMX_EnableRx();
+
+    unsigned char dmx_data1 = 0;
+    unsigned char dmx_data2 = 0;    
+
+    while (1)
+    {
+        if (Packet_Detected_Flag)
+        {
+            Packet_Detected_Flag = 0;
+            LED_ON;
+
+            if (dmx_buff_data[0] == 0)
+            {
+                char s_lcd [20] = { 0 };
+
+                if (dmx_data1 != dmx_buff_data[1])
+                {
+                    sprintf(s_lcd, "ch1: %03d", dmx_buff_data[1]);
+                    LCD_Writel1(s_lcd);
+                    dmx_data1 = dmx_buff_data[1];
+                }
+
+                if (dmx_data2 != dmx_buff_data[2])
+                {
+                    sprintf(s_lcd, "ch2: %03d", dmx_buff_data[2]);
+                    LCD_Writel2(s_lcd);
+                    dmx_data2 = dmx_buff_data[2];
+                }
+            }
+            
+            LED_OFF;
+        }
+    }
+}
+
+
+void TF_Pwm_Channels (void)
+{
+    TIM_3_Init();
+
+    PWM_Update_CH1(DUTY_20_PERCENT);
+    PWM_Update_CH2(DUTY_50_PERCENT);
+                   
+    while (1);
+    
+}
 
 //--- end of file ---//

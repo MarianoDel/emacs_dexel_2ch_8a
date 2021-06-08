@@ -463,44 +463,8 @@ parameters_typedef configurations;
 gboolean Test_Main_Loop (gpointer user_data)
 {
     resp_t resp = resp_continue;
-    sw_actions_t actions = selection_none;
-
-    // g_mutex_lock (&mutex);
-    // if (switch_actions != selection_none)
-    // {
-    //     actions = switch_actions;
-    //     switch_actions = selection_none;
-    //     g_print("new action: %d\n", actions);
-    // }
-    // g_mutex_unlock (&mutex);
     
-    // resp = LCD_ShowSelectv2 ("Prueba display LCD", actions);
-
-    // if (resp == resp_selected)
-    //     g_print ("This item was selected\n");
-
-    // if (resp == resp_change)
-    //     g_print ("Change to new menu DWN\n");
-
-    // if (resp == resp_change_all_up)
-    //     g_print ("Change to new menu UP\n");
-    
-    // if (resp == resp_finish)
-    //     return FALSE;
-    
-    // return TRUE;
-
-    // resp = LCD_ShowBlink ("  Entrando en   ",
-    //                       "Config Predeterm",
-    //                       3,
-    //                       BLINK_DIRECT);
-
-    // if (resp == resp_finish)
-    //     return FALSE;
-
-    // return TRUE;
-    
-    resp = MENU_Main (&configurations);
+    resp = MENU_Main (&configurations, switch_actions);
 
     //wraper to clean sw
     g_mutex_lock (&mutex);
@@ -509,17 +473,9 @@ gboolean Test_Main_Loop (gpointer user_data)
         switch_actions = selection_none;
     
     g_mutex_unlock (&mutex);
-
     
     return TRUE;
 
-    // Lcd_TransmitStr("Hola!!!");
-    // Lcd_Command(4);
-    // Lcd_Command(6);
-    // Lcd_SetDDRAM(0x01);
-
-    // return FALSE;
-    
 }
 
 

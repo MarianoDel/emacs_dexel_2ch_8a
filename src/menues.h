@@ -1,5 +1,5 @@
 //-----------------------------------------------
-// #### PROJECT: O3 TREATMENT - Custom Board ####
+// #### DEXEL 2CH PROJECT - Custom Board ####
 // ##
 // ## @Author: Med
 // ## @Editor: Emacs - ggtags
@@ -25,11 +25,7 @@
 
 // Exported Functions ----------------------------------------------------------
 void MENU_Main_Reset (void);
-resp_t MENU_Main (mem_bkp_t *);
-
-void MENU_Encendido_Reset (void);
-resp_t MENU_Encendido (mem_bkp_t *);
-
+resp_t MENU_Main (mem_bkp_t *, sw_actions_t);
 
     
 #endif    /* _MENUES_H_ */
