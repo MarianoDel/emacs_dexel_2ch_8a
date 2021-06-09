@@ -19,6 +19,9 @@
 #include "uart.h"
 #include "dmx_receiver.h"
 #include "pwm.h"
+#include "adc.h"
+#include "dma.h"
+#include "temperatures.h"
 
 #include <stdio.h>
 
@@ -28,6 +31,8 @@ extern volatile unsigned char dmx_buff_data[];
 extern volatile unsigned char Packet_Detected_Flag;
 extern volatile unsigned short DMX_channel_selected;
 extern volatile unsigned char DMX_channel_quantity;
+
+extern volatile unsigned short adc_ch [];
 
 
 // Globals ---------------------------------------------------------------------
@@ -282,6 +287,44 @@ void TF_Pwm_Channels (void)
                    
     while (1);
     
+}
+
+
+void TF_Temp_Channel (void)
+{
+    // Init LCD
+    LCD_UtilsInit();
+    CTRL_BKL_ON;
+    LCD_ClearScreen();
+    Wait_ms(1000);
+
+    // Init Tim
+    TIM_3_Init();
+
+    // Init ADC and DMA
+    AdcConfig();
+    DMAConfig();
+    DMA1_Channel1->CCR |= DMA_CCR_EN;
+    ADC1->CR |= ADC_CR_ADSTART;
+    
+    char s_lcd [30] = { 0 };
+    unsigned char temp_degrees = 0;
+    while (1)
+    {
+        Wait_ms (500);
+        temp_degrees = Temp_TempToDegrees(Temp_Channel);
+        
+        sprintf(s_lcd, "Ch: %04d T: %d",
+                Temp_Channel,
+                temp_degrees);
+
+        LCD_Writel1(s_lcd);
+
+        sprintf(s_lcd, "convert: %04d",
+                Temp_DegreesToTemp(temp_degrees));
+
+        LCD_Writel2(s_lcd);
+    }
 }
 
 //--- end of file ---//

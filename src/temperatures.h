@@ -1,5 +1,5 @@
 //-------------------------------------------------
-// #### DEXEL 6CH BIDIRECTIONAL - Custom Board ####
+// #### DEXEL 2CH PROJECT - Custom Board ####
 // ##
 // ## @Author: Med
 // ## @Editor: Emacs - ggtags
@@ -42,7 +42,9 @@
 #define TEMP_IN_OFFSET    2919
 
 
-
+// Module Exported Functions ---------------------------------------------------
+unsigned char Temp_TempToDegrees (unsigned short temp);
+unsigned short Temp_DegreesToTemp (unsigned char deg);
 
 
 

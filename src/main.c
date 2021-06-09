@@ -15,6 +15,8 @@
 #include "gpio.h"
 #include "tim.h"
 #include "uart.h"
+#include "adc.h"
+#include "dma.h"
 #include "flash_program.h"
 #include "core_cm0.h"
 
@@ -64,6 +66,10 @@ volatile unsigned char DMX_channel_quantity = 0;
 // externals shared by modes
 unsigned char mode_state;
 volatile unsigned short mode_effect_timer;
+
+// externals for ADC
+volatile unsigned short adc_ch [ADC_CHANNEL_QUANTITY];
+// volatile unsigned char seq_ready;
 
 
 // Globals ---------------------------------------------------------------------
@@ -121,6 +127,7 @@ int main(void)
     // TF_Dmx_Packet ();
     // TF_Dmx_Packet_Data ();
     // TF_Pwm_Channels ();
+    // TF_Temp_Channel ();    
     // End Hard Tests -------------------------------
 
     // Hardware Inits. ---------------------------
@@ -133,6 +140,12 @@ int main(void)
     TIM_14_Init ();
     DMX_DisableRx ();
 
+    // ADC & DMA for temp sense
+    AdcConfig();
+    DMAConfig();
+    DMA1_Channel1->CCR |= DMA_CCR_EN;
+    ADC1->CR |= ADC_CR_ADSTART;
+    
     // LCD Init and Welcome Code
     LCD_UtilsInit();
     CTRL_BKL_ON;
@@ -287,16 +300,12 @@ int main(void)
             break;
 
         case MAIN_IN_OVERTEMP:
-            // main_state = MAIN_IN_OVERTEMP_B;
+            if (Temp_Channel < TEMP_RECONNECT)
+            {
+                //reconnect
+                main_state = MAIN_INIT;
+            }
             break;
-
-        // case MAIN_IN_OVERTEMP_B:
-        //     if (CheckTempReconnect (Temp_Channel, mem_conf.temp_prot))
-        //     {
-        //         //reconnect
-        //         main_state = MAIN_HARDWARE_INIT;
-        //     }
-        //     break;
             
         case MAIN_ENTERING_MAIN_MENU:
             //deshabilitar salidas hardware
@@ -334,9 +343,6 @@ int main(void)
             if (resp == resp_finish)
                 main_state = MAIN_HARD_INIT;
 
-            // if (CheckSET() > SW_HALF)
-            //     main_state = MAIN_ENTERING_HARDWARE_MENU;
-            
             break;
 
         default:
@@ -356,6 +362,38 @@ int main(void)
 
         // things that not depends on the main status
         UpdateSwitches();
+
+#ifdef USE_TEMP_PROT
+        if (main_state != MAIN_IN_OVERTEMP)
+        {
+            if (Temp_Channel > mem_conf.temp_prot)
+            {
+                //deshabilitar salidas hardware
+                DMX_DisableRx();
+
+                enable_outputs_by_int = 0;
+                for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
+                    channels_values_int[n] = 0;
+            
+                //reseteo canales
+                PWMChannelsReset();
+
+                CTRL_FAN_ON;
+
+                while (LCD_ShowBlink("  Overtemp!!!   ",
+                                     " LEDs shutdown  ",
+                                     1,
+                                     BLINK_NO) != resp_finish);
+                
+                main_state = MAIN_IN_OVERTEMP;
+            }
+            else if (Temp_Channel > TEMP_IN_35)
+                CTRL_FAN_ON;
+            else if (Temp_Channel < TEMP_IN_30)
+                CTRL_FAN_OFF;
+        }
+#endif    //USE_TEMP_PROT
+        
         
     }    //end of while 1
 

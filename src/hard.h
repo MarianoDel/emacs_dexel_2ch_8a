@@ -23,7 +23,7 @@
 
 
 //---- Features Configuration -----------------
-
+#define USE_TEMP_PROT
 
 //---- End of Features Configuration ----------
 

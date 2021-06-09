@@ -33,6 +33,7 @@ void TF_MenuFunction (void);
 void TF_Dmx_Packet (void);
 void TF_Dmx_Packet_Data (void);
 void TF_Pwm_Channels (void);
+void TF_Temp_Channel (void);
 
 #endif    /* _TEST_FUNTIONS_H_ */
 

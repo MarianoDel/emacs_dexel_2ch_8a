@@ -71,8 +71,8 @@ SRC  = ./src/main.c
 SRC += $(BOOTDIR)/system_stm32f0xx.c
 SRC += $(BOOTDIR)/syscalls/syscalls.c
 
-# SRC += ./src/adc.c
-# SRC += ./src/dma.c
+SRC += ./src/adc.c
+SRC += ./src/dma.c
 SRC += ./src/dsp.c
 SRC += ./src/gpio.c
 SRC += ./src/hard.c
@@ -90,6 +90,7 @@ SRC += ./src/pwm.c
 SRC += ./src/dmx_mode.c
 SRC += ./src/manual_mode.c
 SRC += ./src/dmx_lcd_menu.c
+SRC += ./src/temperatures.c
 # SRC += ./src/card_mode.c
 
 

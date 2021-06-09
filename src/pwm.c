@@ -1,5 +1,5 @@
 //----------------------------------------------------------
-// #### PROYECTO DEXEL 6CH BIDIRECCIONAL - Custom Board ####
+// #### DEXEL 2CH PROJECT - Custom Board ####
 // ##
 // ## @Author: Med
 // ## @Editor: Emacs - ggtags

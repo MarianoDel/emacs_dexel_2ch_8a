@@ -74,7 +74,8 @@ void AdcConfig (void)
 
     //recordar ADC1->CR |= ADC_CR_ADSTART
     // ADC1->CFGR1 |= ADC_Resolution_10b | ADC_ExternalTrigConvEdge_Rising | ADC_ExternalTrigConv_T3_TRGO;
-    ADC1->CFGR1 |= ADC_Resolution_10b | ADC_ExternalTrigConvEdge_Rising | ADC_ExternalTrigConv_T1_TRGO;
+    // ADC1->CFGR1 |= ADC_Resolution_12b | ADC_ExternalTrigConvEdge_Rising | ADC_ExternalTrigConv_T1_TRGO;
+    ADC1->CFGR1 |= ADC_Resolution_12b | ADC_ExternalTrigConvEdge_Rising | ADC_ExternalTrigConv_T3_TRGO;    
     //ADC1->CFGR1 |= ADC_Resolution_12b | ADC_CFGR1_DISCEN;
     // ADC1->CFGR1 |= ADC_Resolution_12b;
 
@@ -84,7 +85,8 @@ void AdcConfig (void)
     //tengo que hacer 4 muestreos, voy a hacer que el tiempo de los 4 sean mayor a 1 ciclo de TIM3
     //y menor a 2 ciclos
     //set sampling time
-    ADC1->SMPR |= ADC_SampleTime_71_5Cycles;
+    ADC1->SMPR |= ADC_SampleTime_239_5Cycles;
+    // ADC1->SMPR |= ADC_SampleTime_71_5Cycles;    
     // ADC1->SMPR |= ADC_SampleTime_41_5Cycles;
     // ADC1->SMPR |= ADC_SampleTime_28_5Cycles;
     //ADC1->SMPR |= ADC_SampleTime_7_5Cycles;
@@ -92,7 +94,7 @@ void AdcConfig (void)
     //ADC1->SMPR |= ADC_SampleTime_1_5Cycles;			//20.7 de salida son SP 420 (regula mal)
 
     //set channel selection
-    ADC1->CHSELR |= ADC_Channel_0 | ADC_Channel_1 | ADC_Channel_5;    
+    ADC1->CHSELR |= ADC_All_Orer_Channels;
 
 #ifdef ADC_WITH_INT        
     //set interrupts
