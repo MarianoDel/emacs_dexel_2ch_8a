@@ -216,7 +216,7 @@ int main(void)
             UpdateFiltersTest_Reset();
 
             //reviso si es 4 o 8Amps
-            I_SEL_ON;
+            // I_SEL_ON;
 
             main_state++;            
             break;
