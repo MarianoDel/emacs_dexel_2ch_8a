@@ -9,10 +9,45 @@
 #ifndef _TIM_H_
 #define _TIM_H_
 
-//--- Exported types ---//
-//--- Exported constants ---//
-#define DUTY_NONE		0
-#define DUTY_MAX    (DUTY_100_PERCENT)		
+#include "hard.h"    //for freq conf
+
+// Exported Types Constants and Macros -----------------------------------------
+#define DUTY_NONE    (DUTY_00_PERCENT)
+#define DUTY_MAX    (DUTY_100_PERCENT)
+#define DUTY_ALWAYS    (DUTY_100_PERCENT + 1)
+
+#ifdef USE_PWM_16000_FREQ_1KHZ
+#define DUTY_00_PERCENT		0
+#define DUTY_10_PERCENT		1600
+#define DUTY_20_PERCENT		3200
+#define DUTY_50_PERCENT		8000
+#define DUTY_100_PERCENT	16000
+
+#define USE_TIM_FREQ_16KHZ
+#endif
+
+#ifdef USE_PWM_8000_FREQ_2KHZ
+#define DUTY_00_PERCENT		0
+#define DUTY_10_PERCENT		800
+#define DUTY_20_PERCENT		1600
+#define DUTY_50_PERCENT		4000
+#define DUTY_100_PERCENT	8000
+
+#define USE_TIM_FREQ_16KHZ
+#endif
+
+#ifdef USE_PWM_4000_FREQ_4KHZ
+#define DUTY_00_PERCENT		0
+#define DUTY_10_PERCENT		400
+#define DUTY_20_PERCENT		800
+#define DUTY_50_PERCENT		2000
+#define DUTY_100_PERCENT	4000
+
+#define USE_TIM_FREQ_16KHZ
+#endif
+
+#ifdef USE_PWM_1000_FREQ_4_8KHZ
+#define DUTY_00_PERCENT		0
 #define DUTY_10_PERCENT		100
 #define DUTY_20_PERCENT		200
 #define DUTY_50_PERCENT		500
@@ -20,36 +55,15 @@
 #define DUTY_70_PERCENT		700
 #define DUTY_95_PERCENT		950
 #define DUTY_100_PERCENT	1000
-#define DUTY_ALWAYS			(DUTY_100_PERCENT + 1)
 
-//--- Exported macro ---//
-#define RCC_TIM1_CLK 		(RCC->APB2ENR & 0x00000800)
-#define RCC_TIM1_CLK_ON 	RCC->APB2ENR |= 0x00000800
-#define RCC_TIM1_CLK_OFF 	RCC->APB2ENR &= ~0x00000800
+#define USE_TIM_FREQ_4_8KHZ
+#endif
 
-#define RCC_TIM3_CLK 		(RCC->APB1ENR & 0x00000002)
-#define RCC_TIM3_CLK_ON 	RCC->APB1ENR |= 0x00000002
-#define RCC_TIM3_CLK_OFF 	RCC->APB1ENR &= ~0x00000002
+#define EnablePreload_TIM3_CH1    (TIM3->CCMR1 |= TIM_CCMR1_OC1PE)
+#define EnablePreload_TIM3_CH2    (TIM3->CCMR1 |= TIM_CCMR1_OC2PE)
 
-#define RCC_TIM6_CLK 		(RCC->APB1ENR & 0x00000010)
-#define RCC_TIM6_CLK_ON 	RCC->APB1ENR |= 0x00000010
-#define RCC_TIM6_CLK_OFF 	RCC->APB1ENR &= ~0x00000010
-
-#define RCC_TIM14_CLK 		(RCC->APB1ENR & 0x00000100)
-#define RCC_TIM14_CLK_ON 	RCC->APB1ENR |= 0x00000100
-#define RCC_TIM14_CLK_OFF 	RCC->APB1ENR &= ~0x00000100
-
-#define RCC_TIM15_CLK 		(RCC->APB2ENR & 0x00010000)
-#define RCC_TIM15_CLK_ON 	RCC->APB2ENR |= 0x00010000
-#define RCC_TIM15_CLK_OFF 	RCC->APB2ENR &= ~0x00010000
-
-#define RCC_TIM16_CLK 		(RCC->APB2ENR & 0x00020000)
-#define RCC_TIM16_CLK_ON 	RCC->APB2ENR |= 0x00020000
-#define RCC_TIM16_CLK_OFF 	RCC->APB2ENR &= ~0x00020000
-
-#define RCC_TIM17_CLK 		(RCC->APB2ENR & 0x00040000)
-#define RCC_TIM17_CLK_ON 	RCC->APB2ENR |= 0x00040000
-#define RCC_TIM17_CLK_OFF 	RCC->APB2ENR &= ~0x00040000
+#define DisablePreload_TIM3_CH1    (TIM3->CCMR1 &= ~TIM_CCMR1_OC1PE)
+#define DisablePreload_TIM3_CH2    (TIM3->CCMR1 &= ~TIM_CCMR1_OC2PE)
 
 #define CTRL_CH1(X)    Update_TIM3_CH1(X)
 #define CTRL_CH2(X)    Update_TIM3_CH2(X)
@@ -58,7 +72,8 @@
 #define CTRL_CH5(X)    Update_TIM1_CH1(X)
 #define CTRL_CH6(X)    Update_TIM1_CH4(X)
 
-//--- Exported functions ---//
+
+// Module Exported Functions -----------------------------------------
 void TIM_1_Init(void);
 void TIM_3_Init(void);
 void TIM3_IRQHandler (void);

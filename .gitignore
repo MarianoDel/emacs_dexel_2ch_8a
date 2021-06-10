@@ -12,3 +12,4 @@ GRTAGS
 GTAGS
 *.zip
 tests_gtk
+*.txt

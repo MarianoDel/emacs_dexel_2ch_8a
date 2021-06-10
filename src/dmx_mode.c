@@ -111,7 +111,7 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
             dmx_mode_dmx_receiving_timer = TT_DMX_RECEIVING;
 
             if (dmx_buff_data[DMX_PKT_TYPE] == 0x00)    //dmx packet
-            {
+            {                
                 //update the colors channels
                 *(ch_val + 0) = dmx_buff_data[DMX_CLR_CH1];
                 *(ch_val + 1) = dmx_buff_data[DMX_CLR_CH2];

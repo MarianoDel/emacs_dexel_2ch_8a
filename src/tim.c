@@ -12,6 +12,36 @@
 #include "hard.h"
 
 
+// Module Private Types Constants and Macros -----------------------------------
+#define RCC_TIM1_CLK    (RCC->APB2ENR & 0x00000800)
+#define RCC_TIM1_CLK_ON    (RCC->APB2ENR |= 0x00000800)
+#define RCC_TIM1_CLK_OFF    (RCC->APB2ENR &= ~0x00000800)
+
+#define RCC_TIM3_CLK    (RCC->APB1ENR & 0x00000002)
+#define RCC_TIM3_CLK_ON    (RCC->APB1ENR |= 0x00000002)
+#define RCC_TIM3_CLK_OFF    (RCC->APB1ENR &= ~0x00000002)
+
+#define RCC_TIM6_CLK    (RCC->APB1ENR & 0x00000010)
+#define RCC_TIM6_CLK_ON    (RCC->APB1ENR |= 0x00000010)
+#define RCC_TIM6_CLK_OFF    (RCC->APB1ENR &= ~0x00000010)
+
+#define RCC_TIM14_CLK    (RCC->APB1ENR & 0x00000100)
+#define RCC_TIM14_CLK_ON    (RCC->APB1ENR |= 0x00000100)
+#define RCC_TIM14_CLK_OFF    (RCC->APB1ENR &= ~0x00000100)
+
+#define RCC_TIM15_CLK    (RCC->APB2ENR & 0x00010000)
+#define RCC_TIM15_CLK_ON    (RCC->APB2ENR |= 0x00010000)
+#define RCC_TIM15_CLK_OFF    (RCC->APB2ENR &= ~0x00010000)
+
+#define RCC_TIM16_CLK    (RCC->APB2ENR & 0x00020000)
+#define RCC_TIM16_CLK_ON    (RCC->APB2ENR |= 0x00020000)
+#define RCC_TIM16_CLK_OFF    (RCC->APB2ENR &= ~0x00020000)
+
+#define RCC_TIM17_CLK    (RCC->APB2ENR & 0x00040000)
+#define RCC_TIM17_CLK_ON    (RCC->APB2ENR |= 0x00040000)
+#define RCC_TIM17_CLK_OFF    (RCC->APB2ENR &= ~0x00040000)
+
+
 // Externals -------------------------------------------------------------------
 extern volatile unsigned short wait_ms_var;
 
@@ -128,7 +158,13 @@ void TIM_3_Init (void)
     TIM3->ARR = DUTY_100_PERCENT;        //tick cada 20.83us --> 48KHz
     TIM3->CNT = 0;
 
+#if defined USE_TIM_FREQ_16KHZ
+    TIM3->PSC = 2;    // prescales div = 3
+#elif defined USE_TIM_FREQ_4_8KHZ
     TIM3->PSC = 9;    // prescales div = 10
+#else
+    #error "set freq on hard.h"
+#endif
 	
     //Alternate Fuction Pin Configurations
     temp = GPIOA->AFR[0];

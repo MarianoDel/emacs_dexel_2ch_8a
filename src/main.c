@@ -81,10 +81,19 @@ volatile unsigned short need_to_save_timer = 0;
 //-- for the filters and outputs
 volatile unsigned char channels_values_int [2] = { 0 };
 volatile unsigned char enable_outputs_by_int = 0;
-ma16_u16_data_obj_t st_sp1;
-ma16_u16_data_obj_t st_sp2;
 unsigned short ch1_pwm = 0;
 unsigned short ch2_pwm = 0;
+
+#ifdef USE_FILTER_LENGHT_16
+ma16_u16_data_obj_t st_sp1;
+ma16_u16_data_obj_t st_sp2;
+#endif
+
+#ifdef USE_FILTER_LENGHT_32
+ma32_u16_data_obj_t st_sp1;
+ma32_u16_data_obj_t st_sp2;
+#endif
+
 
 
 // -- for the timeouts in the modes ----
@@ -134,6 +143,8 @@ int main(void)
     // Timer for PWM
     TIM_3_Init ();
     PWMChannelsReset ();
+    EnablePreload_PWM1;
+    EnablePreload_PWM2;
 
     // Usart and Timer for DMX
     Usart1Config ();
@@ -203,6 +214,9 @@ int main(void)
 
             //limpio los filtros
             UpdateFiltersTest_Reset();
+
+            //reviso si es 4 o 8Amps
+            I_SEL_ON;
 
             main_state++;            
             break;
@@ -413,32 +427,72 @@ typedef enum {
 } filters_and_offsets_e;
 
 filters_and_offsets_e filters_sm = FILTERS_BKP_CHANNELS;
-unsigned char limit_output [2] = { 0 };
+unsigned short limit_output [2] = { 0 };
 void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 {
-    unsigned short calc = 0;    
+    unsigned short calc = 0;
+    
+#ifdef USE_BRIGHT_AND_TEMP    
+    unsigned char bright = 0;
+    unsigned char temp0 = 0;
+    unsigned char temp1 = 0;
+#endif
     
     switch (filters_sm)
     {
     case FILTERS_BKP_CHANNELS:
-        limit_output[0] = *(ch_dmx_val + 0);
-        limit_output[1] = *(ch_dmx_val + 1);
+#ifdef USE_BRIGHT_AND_TEMP
+        // backup and bright temp calcs
+        // ch0 the bright ch1 the temp
+        bright = *(ch_dmx_val + 0);
+        temp0 = 255 - *(ch_dmx_val + 1);
+        temp1 = 255 - temp0;
+        
+        calc = temp0 * bright;
+        // calc >>= 8;
+        // limit_output[0] = (unsigned char) calc;
+        // calc >>= 4;    //4000 pts
+        // calc >>= 3;    //8000 pts
+        calc >>= 2;    //16000 pts        
+        limit_output12[0] = calc;
+        
+        calc = temp1 * bright;
+        // calc >>= 8;
+        // limit_output[1] = (unsigned char) calc;
+        // calc >>= 4;    //4000 pts        
+        // calc >>= 3;    //8000 pts
+        calc >>= 2;    //16000 pts        
+        limit_output12[1] = calc;
+        
+#endif
+        
+#ifdef USE_DIRECT_CHANNELS
+        calc = *(ch_dmx_val + 0);
+        calc <<= 6;
+        limit_output[0] = calc;
+
+        calc = *(ch_dmx_val + 1);
+        calc <<= 6;
+        limit_output[1] = calc;
+#endif
+
         filters_sm++;
         break;
 
     case FILTERS_LIMIT_EACH_CHANNEL:
-        calc = limit_output[0] * mem_conf.max_current_channels[0];
-        calc >>= 8;
-        limit_output[0] = (unsigned char) calc;
+        // calc = limit_output[0] * mem_conf.max_current_channels[0];
+        // calc >>= 8;
+        // limit_output[0] = (unsigned char) calc;
 
-        calc = limit_output[1] * mem_conf.max_current_channels[1];
-        calc >>= 8;
-        limit_output[1] = (unsigned char) calc;
+        // calc = limit_output[1] * mem_conf.max_current_channels[1];
+        // calc >>= 8;
+        // limit_output[1] = (unsigned char) calc;
 
         filters_sm++;
         break;
 
     case FILTERS_OUTPUTS:
+#ifdef USE_FILTER_LENGHT_16
         // channel 1
         ch1_pwm = MA16_U16Circular (
             &st_sp1,
@@ -452,6 +506,20 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             PWM_Map_From_Dmx(*(limit_output + CH2_VAL_OFFSET))
             );
         PWM_Update_CH2(ch2_pwm);
+#endif
+#ifdef USE_FILTER_LENGHT_32
+        // channel 1
+        ch1_pwm = MA32_U16Circular (&st_sp1, *(limit_output + CH1_VAL_OFFSET));
+        PWM_Update_CH1(ch1_pwm);
+
+        // channel 2
+        ch2_pwm = MA32_U16Circular (&st_sp2, *(limit_output + CH2_VAL_OFFSET));
+        PWM_Update_CH2(ch2_pwm);        
+#endif
+        if (LED)
+            LED_OFF;
+        else
+            LED_ON;
 
         filters_sm++;
         break;
@@ -471,11 +539,20 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 }
 
 
+#ifdef USE_FILTER_LENGHT_16
 void UpdateFiltersTest_Reset (void)
 {
     MA16_U16Circular_Reset(&st_sp1);
     MA16_U16Circular_Reset(&st_sp2);
 }
+#endif
+#ifdef USE_FILTER_LENGHT_32
+void UpdateFiltersTest_Reset (void)
+{
+    MA32_U16Circular_Reset(&st_sp1);
+    MA32_U16Circular_Reset(&st_sp2);
+}
+#endif
 
 
 void TimingDelay_Decrement(void)

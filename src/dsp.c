@@ -8,19 +8,20 @@
 
 #include "dsp.h"
 
-
 #include <stdlib.h>
 #include <math.h>
 
 
-/* Externals variables ---------------------------------------------------------*/
+// Externals -------------------------------------------------------------------
 
-/* Global variables ---------------------------------------------------------*/
 
-/* Module Definitions ---------------------------------------------------------*/
+// Globals ---------------------------------------------------------------------
 
-/* Module functions ---------------------------------------------------------*/
 
+// Module Private Functions ----------------------------------------------------
+
+
+// Module Functions ------------------------------------------------------------
 unsigned short RandomGen (unsigned int seed)
 {
 	unsigned int random;
@@ -118,6 +119,49 @@ unsigned char MA32_U8Circular_Only_Calc (ma32_u8_data_obj_t *p_data)
 }
 
 #endif    //USE_MA32_U8_CIRCULAR
+
+
+#ifdef USE_MA32_U16_CIRCULAR
+//set de punteros y vaciado del filtro
+//recibe:
+// puntero a estructura de datos del filtro "ma32_u16_data_obj_t *"
+void MA32_U16Circular_Reset (ma32_u16_data_obj_t * p_data)
+{
+    unsigned char i;
+    
+    for (i = 0; i < 32; i++)
+        p_data->v_ma[i] = 0;
+
+    p_data->p_ma = p_data->v_ma;
+    p_data->total_ma = 0;
+}
+
+//Filtro circular, necesito activar previamente con MA32_U16Circular_Reset()
+//recibe:
+// puntero a estructura de datos del filtro "ma32_u16_data_obj_t *"
+// nueva mustra "new_sample"
+//contesta:
+// resultado del filtro
+unsigned short MA32_U16Circular (ma32_u16_data_obj_t *p_data, unsigned short new_sample)
+{
+    p_data->total_ma -= *(p_data->p_ma);
+    p_data->total_ma += new_sample;
+    *(p_data->p_ma) = new_sample;
+
+    if (p_data->p_ma < ((p_data->v_ma) + 31))
+        p_data->p_ma += 1;
+    else
+        p_data->p_ma = p_data->v_ma;
+
+    return (unsigned short) (p_data->total_ma >> 5);    
+}
+
+unsigned short MA32_U16Circular_Only_Calc (ma32_u16_data_obj_t *p_data)
+{
+    return (unsigned short) (p_data->total_ma >> 5);
+}
+
+#endif    //USE_MA32_U16_CIRCULAR
 
 #ifdef USE_PID_CONTROLLERS
 // #define PID_CONSTANT_DIVIDER    10    //todos se dividen por 1024

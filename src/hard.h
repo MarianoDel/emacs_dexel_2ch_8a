@@ -25,6 +25,20 @@
 //---- Features Configuration -----------------
 #define USE_TEMP_PROT
 
+// -- Freq for the timers
+#define USE_PWM_16000_FREQ_1KHZ
+// #define USE_PWM_8000_FREQ_2KHZ
+// #define USE_
+
+// -- Dmx to Pwm filter lenght --
+// #define USE_FILTER_LENGHT_16
+#define USE_FILTER_LENGHT_32
+
+// -- Dmx to Pwm channels setup
+// #define USE_BRIGHT_AND_TEMP
+#define USE_DIRECT_CHANNELS
+
+
 //---- End of Features Configuration ----------
 
 
@@ -100,13 +114,6 @@
 
 // Exported Types & Macros -----------------------------------------------------
 
-//Estados Externos de LED BLINKING
-#define LED_NO_BLINKING    0
-#define LED_TREATMENT_STANDBY    1
-#define LED_TREATMENT_GENERATING    2
-#define LED_TREATMENT_PAUSED    3
-#define LED_NO_RFID    4
-
 // Answers expected
 
 
@@ -125,9 +132,6 @@
 
 // Module Exported Functions ---------------------------------------------------
 void HARD_Timeouts (void);
-
-void ChangeLed (unsigned char);
-void UpdateLed (void);
 
 resp_sw_t Check_SW_UP (void);
 resp_sw_t Check_SW_DWN (void);

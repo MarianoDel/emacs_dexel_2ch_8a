@@ -9,14 +9,14 @@
 #ifndef _DSP_H_
 #define _DSP_H_
 
-//--- Defines for Configuration ------------------------------
-// #define USE_PID_CONTROLLERS
+// Defines for Module Configuration --------------------------------------------
+#define USE_PID_CONTROLLERS
 // #define USE_MA32_U8_CIRCULAR
 #define USE_MA16_U16_CIRCULAR
+#define USE_MA32_U16_CIRCULAR
 
 
-//--- Exported constants ------------------------
-//--- Exported types ----------------------------
+// Module Exported Types Constants & Macros ------------------------------------
 typedef struct {
     unsigned short v_ma[16];
     unsigned short * p_ma;
@@ -28,6 +28,12 @@ typedef struct {
     unsigned char * p_ma;
     unsigned int total_ma;
 } ma32_u8_data_obj_t;
+
+typedef struct {
+    unsigned short v_ma[32];
+    unsigned short * p_ma;
+    unsigned int total_ma;
+} ma32_u16_data_obj_t;
 
 typedef struct {
     short setpoint;
@@ -47,7 +53,8 @@ typedef struct {
     unsigned int output_z1;
 } IIR_first_order_data_obj_t;
 
-//--- Module Functions --------------------------
+
+// Module Exported Functions ---------------------------------------------------
 unsigned short RandomGen (unsigned int);
 
 #ifdef USE_PID_CONTROLLERS
@@ -62,6 +69,13 @@ void MA16_U16Circular_Reset (ma16_u16_data_obj_t *);
 unsigned short MA16_U16Circular (ma16_u16_data_obj_t *, unsigned short);
 unsigned short MA16_U16Circular_Only_Calc (ma16_u16_data_obj_t *);
 #endif
+
+#ifdef USE_MA32_U16_CIRCULAR
+void MA32_U16Circular_Reset (ma32_u16_data_obj_t *);
+unsigned short MA32_U16Circular (ma32_u16_data_obj_t *, unsigned short);
+unsigned short MA32_U16Circular_Only_Calc (ma32_u16_data_obj_t *);
+#endif
+
 
 #ifdef USE_MA32_U8_CIRCULAR
 void MA32_U8Circular_Reset (ma32_u8_data_obj_t *);
@@ -78,4 +92,8 @@ void DSP_Vector_Calcule_Frequencies (unsigned short *,
                                      unsigned char *);
 
 unsigned short IIR_first_order (IIR_first_order_data_obj_t *, unsigned short);
+
+
 #endif /* _DSP_H_ */
+
+//--- end of file ---//
