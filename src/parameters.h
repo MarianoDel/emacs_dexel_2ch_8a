@@ -36,10 +36,16 @@ typedef struct parameters {
     unsigned char max_current_channels [2];    
     
     //-- For Temperature Protection ----    //8
-    unsigned short temp_prot;        
+    unsigned short temp_prot;
+
+    //-- Current Set ----    //10
+    unsigned char current_eight_amps;
+
+    //-- Channels Operation Mode ----    //11
+    unsigned char channels_operation_mode;
     
-    unsigned char dummy1;
-    unsigned char dummy2;          
+    // unsigned char dummy1;
+    // unsigned char dummy2;          
     // unsigned char dummy3;       
 
     //-- End of Struct check for 4 bytes alignment ---- //12

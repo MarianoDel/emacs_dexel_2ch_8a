@@ -126,6 +126,7 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
         {
             dmx_menu_data_t dmx_st;
             dmx_st.dmx_first_chnl = &mem_conf.dmx_first_channel;
+            dmx_st.channels_mode = mem_conf.channels_operation_mode;
             dmx_st.pchannels = ch_val;
 
             if (dmx_address_show)
@@ -140,10 +141,10 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
             
         }
 
-        if (!dmx_mode_dmx_receiving_timer)
-            CTRL_BKL_OFF;
-        else
-            CTRL_BKL_ON;
+        // if (!dmx_mode_dmx_receiving_timer)
+        //     CTRL_BKL_OFF;
+        // else
+        //     CTRL_BKL_ON;
         
         break;
 

@@ -110,7 +110,8 @@ void EXTI4_15_IRQHandler(void);
 void SysTickError (void);
 void UpdateFiltersTest_Reset (void);
 void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val);
-
+unsigned short OutputDeltaPos (unsigned short sp, unsigned short current);
+unsigned short OutputDeltaNeg (unsigned short sp, unsigned short current);
 
 // Module Functions ------------------------------------------------------------
 int main(void)
@@ -195,6 +196,8 @@ int main(void)
                 mem_conf.temp_prot = TEMP_IN_70;    //70 degrees
                 mem_conf.max_current_channels[0] = 255;
                 mem_conf.max_current_channels[1] = 255;
+                mem_conf.current_eight_amps = 0;
+                mem_conf.channels_operation_mode = 0;
 
                 mem_conf.dmx_first_channel = 1;
                 mem_conf.dmx_channel_quantity = 2;                
@@ -216,7 +219,8 @@ int main(void)
             UpdateFiltersTest_Reset();
 
             //reviso si es 4 o 8Amps
-            // I_SEL_ON;
+            if (mem_conf.current_eight_amps)
+                I_SEL_ON;
 
             main_state++;            
             break;
@@ -454,7 +458,7 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
         // calc >>= 4;    //4000 pts
         // calc >>= 3;    //8000 pts
         calc >>= 2;    //16000 pts        
-        limit_output12[0] = calc;
+        limit_output[0] = calc;
         
         calc = temp1 * bright;
         // calc >>= 8;
@@ -462,17 +466,21 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
         // calc >>= 4;    //4000 pts        
         // calc >>= 3;    //8000 pts
         calc >>= 2;    //16000 pts        
-        limit_output12[1] = calc;
+        limit_output[1] = calc;
         
 #endif
         
 #ifdef USE_DIRECT_CHANNELS
         calc = *(ch_dmx_val + 0);
-        calc <<= 6;
+        // calc <<= 4;    //4000 pts
+        // calc <<= 5;    //8000 pts
+        calc <<= 6;    //16000 pts        
         limit_output[0] = calc;
 
         calc = *(ch_dmx_val + 1);
-        calc <<= 6;
+        // calc <<= 4;    //4000 pts
+        // calc <<= 5;    //8000 pts
+        calc <<= 6;    //16000 pts        
         limit_output[1] = calc;
 #endif
 
@@ -516,6 +524,35 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
         ch2_pwm = MA32_U16Circular (&st_sp2, *(limit_output + CH2_VAL_OFFSET));
         PWM_Update_CH2(ch2_pwm);        
 #endif
+#ifdef USE_NO_FILTER
+        // channel 1
+        if (*(limit_output + CH1_VAL_OFFSET) > ch1_pwm)
+        {
+            unsigned short setpoint_ch1 = *(limit_output + CH1_VAL_OFFSET);
+            ch1_pwm = OutputDeltaPos (setpoint_ch1, ch1_pwm);
+        }
+        else if (*(limit_output + CH1_VAL_OFFSET) < ch1_pwm)
+        {
+            unsigned short setpoint_ch1 = *(limit_output + CH1_VAL_OFFSET);
+            ch1_pwm = OutputDeltaNeg (setpoint_ch1, ch1_pwm);
+        }
+            
+        PWM_Update_CH1(ch1_pwm);
+
+        // channel 2
+        if (*(limit_output + CH2_VAL_OFFSET) > ch2_pwm)
+        {
+            unsigned short setpoint_ch2 = *(limit_output + CH2_VAL_OFFSET);
+            ch2_pwm = OutputDeltaPos (setpoint_ch2, ch2_pwm);
+        }
+        else if (*(limit_output + CH2_VAL_OFFSET) < ch2_pwm)
+        {
+            unsigned short setpoint_ch2 = *(limit_output + CH2_VAL_OFFSET);
+            ch2_pwm = OutputDeltaNeg (setpoint_ch2, ch2_pwm);
+        }
+
+        PWM_Update_CH2(ch2_pwm);        
+#endif
         if (LED)
             LED_OFF;
         else
@@ -539,20 +576,64 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 }
 
 
-#ifdef USE_FILTER_LENGHT_16
+unsigned short OutputDeltaPos (unsigned short sp, unsigned short current)
+{
+    if (current > 4000)
+    {
+        if (sp > (current + 5))
+            current += 5;
+        else
+            current = sp;
+    }
+    else if (current > 2000)
+    {
+        if (sp > (current + 2))
+            current += 2;
+        else
+            current = sp;
+    }
+    else
+        current++;
+
+    return current;
+}
+
+
+unsigned short OutputDeltaNeg (unsigned short sp, unsigned short current)
+{
+    if (current > 4000)
+    {
+        if (sp < (current - 5))
+            current -= 5;
+        else
+            current = sp;
+    }
+    else if (current > 2000)
+    {
+        if (sp < (current - 2))
+            current -= 2;
+        else
+            current = sp;
+    }
+    else
+        current--;
+
+    return current;
+}
+
+
+
 void UpdateFiltersTest_Reset (void)
 {
+#ifdef USE_FILTER_LENGHT_16    
     MA16_U16Circular_Reset(&st_sp1);
     MA16_U16Circular_Reset(&st_sp2);
-}
 #endif
 #ifdef USE_FILTER_LENGHT_32
-void UpdateFiltersTest_Reset (void)
-{
     MA32_U16Circular_Reset(&st_sp1);
     MA32_U16Circular_Reset(&st_sp2);
+#endif    
 }
-#endif
 
 
 void TimingDelay_Decrement(void)

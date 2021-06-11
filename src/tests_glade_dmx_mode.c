@@ -478,6 +478,8 @@ gboolean Test_Main_Loop (gpointer user_data)
     {
         mem_conf.dmx_first_channel = 1;
         mem_conf.dmx_channel_quantity = 2;
+        mem_conf.channels_operation_mode = 0;
+        // mem_conf.channels_operation_mode = 1;        
         Packet_Detected_Flag = 1;
         dmx_buff_data[0] = 0;
         dmx_buff_data[1] = 128;

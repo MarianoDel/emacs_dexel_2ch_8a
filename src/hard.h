@@ -32,11 +32,12 @@
 
 // -- Dmx to Pwm filter lenght --
 // #define USE_FILTER_LENGHT_16
-#define USE_FILTER_LENGHT_32
+// #define USE_FILTER_LENGHT_32
+#define USE_NO_FILTER
 
 // -- Dmx to Pwm channels setup
-// #define USE_BRIGHT_AND_TEMP
-#define USE_DIRECT_CHANNELS
+#define USE_BRIGHT_AND_TEMP
+// #define USE_DIRECT_CHANNELS
 
 
 //---- End of Features Configuration ----------

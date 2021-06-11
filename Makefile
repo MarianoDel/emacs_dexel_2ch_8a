@@ -265,7 +265,7 @@ tests_dmx_mode:
 	# first compile common modules (modules to test and dependencies)
 	gcc -c src/lcd_utils.c -I. $(INCDIR)
 	gcc -c src/dmx_lcd_menu.c -I. $(INCDIR)
-	gcc -c src/dmx_mode.c -I. $(INCDIR)
+	gcc -c src/dmx_mode.c -I. $(INCDIR) -DSTM32F030
 	# then the gtk lib modules
 	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_glade_dmx_mode.c -o tests_glade_dmx_mode.o
 	# link everithing

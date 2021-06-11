@@ -59,16 +59,25 @@ resp_t DMXLcdMenu (dmx_menu_data_t * pmenu_data)
         if (pmenu_data->show_addres)
             sprintf(s_temp, "ADDR: %03d      D", *pmenu_data->dmx_first_chnl);
         else
-            strcpy(s_temp, "ADDR:          D");
+            strcpy(s_temp, "ADDR:          D");                
         
         LCD_Writel1(s_temp);
         dmx_menu_state++;
         break;
 
     case DMX_MENU_CHECK_CHNLS:
-        sprintf(s_temp, "Brgt: %3d T: %3d",
+        if (pmenu_data->channels_mode == 0)
+        {
+            sprintf(s_temp, "Brgt: %3d T: %3d",
                     *((pmenu_data->pchannels) + 0),
                     *((pmenu_data->pchannels) + 1));
+        }
+        else
+        {
+            sprintf(s_temp, "c1: %3d  c2: %3d",
+                    *((pmenu_data->pchannels) + 0),
+                    *((pmenu_data->pchannels) + 1));
+        }
             
         LCD_Writel2(s_temp);
         dmx_menu_state++;

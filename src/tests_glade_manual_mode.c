@@ -472,6 +472,7 @@ gboolean Test_Main_Loop (gpointer user_data)
 {
     resp_t resp = resp_continue;
 
+    // mem_conf.channels_operation_mode = 1;
     resp = ManualMode (pwm_channels, switch_actions);
 
     if (resp == resp_need_to_save)

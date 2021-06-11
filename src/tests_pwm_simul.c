@@ -47,6 +47,8 @@ void Test_Dmx_Step (void);
 
 // Main Function to Test -------------------------------------------------------
 void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val);
+unsigned short OutputDeltaPos (unsigned short sp, unsigned short current);
+unsigned short OutputDeltaNeg (unsigned short sp, unsigned short current);
 
 
 // Module Auxiliary Functions for Tests ----------------------------------------
@@ -86,20 +88,20 @@ void Test_Dmx_Step (void)
     printf("\nTest dmx Step\n");
 
     // brillo 10% muevo color
-    for (int i = 0; i < VECTOR_LENGTH; i++)
-        dmx_data_ch1 [i] = 25;
+    // for (int i = 0; i < VECTOR_LENGTH; i++)
+    //     dmx_data_ch1 [i] = 25;
 
-    for (int i = 0; i < 200; i++)
-        dmx_data_ch2 [i] = 64;
+    // for (int i = 0; i < 200; i++)
+    //     dmx_data_ch2 [i] = 64;
 
-    for (int i = 200; i < 400; i++)
-        dmx_data_ch2 [i] = 128;
+    // for (int i = 200; i < 400; i++)
+    //     dmx_data_ch2 [i] = 128;
 
-    for (int i = 400; i < 600; i++)
-        dmx_data_ch2 [i] = 192;
+    // for (int i = 400; i < 600; i++)
+    //     dmx_data_ch2 [i] = 192;
 
-    for (int i = 600; i < VECTOR_LENGTH; i++)
-        dmx_data_ch2 [i] = 255;
+    // for (int i = 600; i < VECTOR_LENGTH; i++)
+    //     dmx_data_ch2 [i] = 255;
 
 
     // temp 50% brillo hasta 10%
@@ -139,8 +141,11 @@ void Test_Dmx_Step (void)
     //     dmx_data [i] = 255;
 
     // step 255
-    // for (int i = 0; i < VECTOR_LENGTH; i++)
-    //     dmx_data [i] = 255;
+    for (int i = 0; i < VECTOR_LENGTH; i++)
+    {
+        dmx_data_ch1 [i] = 255;
+        dmx_data_ch2 [i] = 0;
+    }
     
     UpdateFiltersTest_Reset ();
     for (int i = 0; i < VECTOR_LENGTH; i++)
@@ -178,9 +183,10 @@ void Test_Dmx_Step (void)
 }
 
 
-#define USE_BRIGHT_AND_TEMP
-// #define USE_DIRECT_CHANNELS
-#define USE_FILTER_LENGHT_32
+// #define USE_BRIGHT_AND_TEMP
+#define USE_DIRECT_CHANNELS
+// #define USE_FILTER_LENGHT_32
+#define USE_NO_FILTER
 unsigned short ch1_pwm = 0;
 unsigned short ch2_pwm = 0;
 
@@ -297,6 +303,36 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
         ch2_pwm = MA32_U16Circular (&st_sp2, *(limit_output + CH2_VAL_OFFSET));
         PWM_Update_CH2(ch2_pwm);
 #endif
+#ifdef USE_NO_FILTER
+        // channel 1
+        if (*(limit_output + CH1_VAL_OFFSET) > ch1_pwm)
+        {
+            unsigned short setpoint_ch1 = *(limit_output + CH1_VAL_OFFSET);
+            ch1_pwm = OutputDeltaPos (setpoint_ch1, ch1_pwm);
+        }
+        else if (*(limit_output + CH1_VAL_OFFSET) < ch1_pwm)
+        {
+            unsigned short setpoint_ch1 = *(limit_output + CH1_VAL_OFFSET);
+            ch1_pwm = OutputDeltaNeg (setpoint_ch1, ch1_pwm);
+        }
+            
+        PWM_Update_CH1(ch1_pwm);
+
+        // channel 2
+        if (*(limit_output + CH2_VAL_OFFSET) > ch2_pwm)
+        {
+            unsigned short setpoint_ch2 = *(limit_output + CH2_VAL_OFFSET);
+            ch2_pwm = OutputDeltaPos (setpoint_ch2, ch2_pwm);
+        }
+        else if (*(limit_output + CH2_VAL_OFFSET) < ch2_pwm)
+        {
+            unsigned short setpoint_ch2 = *(limit_output + CH2_VAL_OFFSET);
+            ch2_pwm = OutputDeltaNeg (setpoint_ch2, ch2_pwm);
+        }
+
+        PWM_Update_CH2(ch2_pwm);        
+#endif
+
         // if (LED)
         //     LED_OFF;
         // else
@@ -320,21 +356,64 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 }
 
 
-#ifdef USE_FILTER_LENGHT_16
+unsigned short OutputDeltaPos (unsigned short sp, unsigned short current)
+{
+    if (current > 4000)
+    {
+        if (sp > (current + 5))
+            current += 5;
+        else
+            current = sp;
+    }
+    else if (current > 2000)
+    {
+        if (sp > (current + 2))
+            current += 2;
+        else
+            current = sp;
+    }
+    else
+        current++;
+
+    return current;
+}
+
+
+unsigned short OutputDeltaNeg (unsigned short sp, unsigned short current)
+{
+    if (current > 4000)
+    {
+        if (sp < (current - 5))
+            current -= 5;
+        else
+            current = sp;
+    }
+    else if (current > 2000)
+    {
+        if (sp < (current - 2))
+            current -= 2;
+        else
+            current = sp;
+    }
+    else
+        current--;
+
+    return current;
+}
+
+
+
 void UpdateFiltersTest_Reset (void)
 {
+#ifdef USE_FILTER_LENGHT_16    
     MA16_U16Circular_Reset(&st_sp1);
     MA16_U16Circular_Reset(&st_sp2);
-}
 #endif
 #ifdef USE_FILTER_LENGHT_32
-void UpdateFiltersTest_Reset (void)
-{
     MA32_U16Circular_Reset(&st_sp1);
     MA32_U16Circular_Reset(&st_sp2);
-}
 #endif
-
+}
 
 
 int pwm_cntr = 0;

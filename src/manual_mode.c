@@ -11,6 +11,7 @@
 // Includes --------------------------------------------------------------------
 #include "manual_mode.h"
 #include "lcd_utils.h"
+#include "parameters.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -45,13 +46,15 @@ extern volatile unsigned short mode_effect_timer;
 
 #define mm_menu_timer    mode_effect_timer
 
+extern parameters_typedef mem_conf;
+
 // Globals ---------------------------------------------------------------------
 
 
 // Module Private Functions ----------------------------------------------------
 void ManualMode_MenuReset (void);
 resp_t ManualMode_Menu (unsigned char *, sw_actions_t);
-void DataShow (unsigned char state, char bright, unsigned char temp);
+void DataShow (unsigned char state, unsigned char bright, unsigned char temp, unsigned char ch_mode);
 
 // Module Functions ------------------------------------------------------------
 void ManualMode_UpdateTimers (void)
@@ -132,14 +135,22 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
     case MM_MENU_INIT:
         LCD_Writel1("  Manual Mode   ");
 
-        DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
+        DataShow (SHOW_ALL,
+                  *(ch + 0),
+                  *(ch + 1),
+                  mem_conf.channels_operation_mode);
+        
         mm_menu_state++;
         break;
 
     case MM_MENU_CHECK_SWITCHES:
         if (sw == selection_enter)
         {
-            DataShow (SHOW_ONLY_TEMP, *(ch + 0), *(ch + 1));
+            DataShow (SHOW_ONLY_TEMP,
+                      *(ch + 0),
+                      *(ch + 1),
+                      mem_conf.channels_operation_mode);
+            
             mm_menu_state++;
         }
         break;
@@ -161,7 +172,11 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
                 *(ch + 0) += 1;
 
             show_option = 1;
-            DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
+            DataShow (SHOW_ALL,
+                      *(ch + 0),
+                      *(ch + 1),
+                      mem_conf.channels_operation_mode);
+            
             mm_menu_timer = TT_SHOW_OPTIONS;
 
             resp = resp_change;
@@ -173,7 +188,11 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
                 *(ch + 0) -= 1;
 
             show_option = 1;
-            DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
+            DataShow (SHOW_ALL,
+                      *(ch + 0),
+                      *(ch + 1),
+                      mem_conf.channels_operation_mode);
+
             mm_menu_timer = TT_SHOW_OPTIONS;
 
             resp = resp_change;            
@@ -181,7 +200,11 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
 
         if (sw == selection_enter)
         {
-            DataShow (SHOW_ONLY_BRIGHT, *(ch + 0), *(ch + 1));
+            DataShow (SHOW_ONLY_BRIGHT,
+                      *(ch + 0),
+                      *(ch + 1),
+                      mem_conf.channels_operation_mode);
+
             mm_menu_state = MM_MENU_SELECT_TEMP_START;
         }
 
@@ -190,12 +213,18 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
             if (show_option)
             {
                 show_option = 0;
-                DataShow (SHOW_ONLY_TEMP, *(ch + 0), *(ch + 1));
+                DataShow (SHOW_ONLY_TEMP,
+                          *(ch + 0),
+                          *(ch + 1),
+                          mem_conf.channels_operation_mode);
             }
             else
             {
                 show_option = 1;
-                DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
+                DataShow (SHOW_ALL,
+                          *(ch + 0),
+                          *(ch + 1),
+                          mem_conf.channels_operation_mode);
             }
 
             if (mm_menu_cntr_out)
@@ -226,7 +255,11 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
                 *(ch + 1) += 1;
 
             show_option = 1;
-            DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
+            DataShow (SHOW_ALL,
+                      *(ch + 0),
+                      *(ch + 1),
+                      mem_conf.channels_operation_mode);
+            
             mm_menu_timer = TT_SHOW_OPTIONS;
 
             resp = resp_change;            
@@ -238,7 +271,11 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
                 *(ch + 1) -= 1;
 
             show_option = 1;
-            DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
+            DataShow (SHOW_ALL,
+                      *(ch + 0),
+                      *(ch + 1),
+                      mem_conf.channels_operation_mode);
+            
             mm_menu_timer = TT_SHOW_OPTIONS;
 
             resp = resp_change;            
@@ -254,12 +291,18 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
             if (show_option)
             {
                 show_option = 0;
-                DataShow (SHOW_ONLY_BRIGHT, *(ch + 0), *(ch + 1));
+                DataShow (SHOW_ONLY_BRIGHT,
+                          *(ch + 0),
+                          *(ch + 1),
+                          mem_conf.channels_operation_mode);
             }
             else
             {
                 show_option = 1;
-                DataShow (SHOW_ALL, *(ch + 0), *(ch + 1));
+                DataShow (SHOW_ALL,
+                          *(ch + 0),
+                          *(ch + 1),
+                          mem_conf.channels_operation_mode);
             }
 
             if (mm_menu_cntr_out)
@@ -290,34 +333,55 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
 }
 
 
-void DataShow (unsigned char state, char bright, unsigned char temp)
+void DataShow (unsigned char state, unsigned char bright, unsigned char temp, unsigned char ch_mode)
 {
     char s_temp[17] = { 0 };    //16 chars per line + '\0'
 
     switch (state)
     {
     case SHOW_ALL:
-        sprintf(s_temp, "Brgt: %3d T: %3d",
-                bright,
-                temp);
-
-        LCD_Writel2(s_temp);
+        if (ch_mode == 0)
+        {
+            sprintf(s_temp, "Brgt: %3d T: %3d",
+                    bright,
+                    temp);
+        }
+        else
+        {
+            sprintf(s_temp, "c1: %3d  c2: %3d",
+                    bright,
+                    temp);
+        }
         break;
 
     case SHOW_ONLY_TEMP:
-        sprintf(s_temp, "Brgt:     T: %3d",
-                temp);
-
-        LCD_Writel2(s_temp);
+        if (ch_mode == 0)
+        {
+            sprintf(s_temp, "Brgt:     T: %3d",
+                    temp);
+        }
+        else
+        {
+            sprintf(s_temp, "c1:      c2: %3d",
+                    temp);
+        }
         break;
 
     case SHOW_ONLY_BRIGHT:
-        sprintf(s_temp, "Brgt: %3d T:    ",
-                bright);
-
-        LCD_Writel2(s_temp);
+        if (ch_mode == 0)
+        {
+            sprintf(s_temp, "Brgt: %3d T:    ",
+                    bright);
+        }
+        else
+        {
+            sprintf(s_temp, "c1: %3d  c2:    ",        
+                    bright);
+        }
         break;
     }
+
+    LCD_Writel2(s_temp);    
 }
 
 

@@ -21,7 +21,7 @@ typedef struct {
     const unsigned short * dmx_first_chnl;
     const unsigned char * pchannels;
     unsigned char show_addres;
-    unsigned char backlight;
+    unsigned char channels_mode;
     
 } dmx_menu_data_t;
 
