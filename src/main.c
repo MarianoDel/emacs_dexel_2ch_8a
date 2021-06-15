@@ -230,9 +230,14 @@ int main(void)
             if (mem_conf.program_type == DMX_MODE)
             {
                 // reception variables
-                Packet_Detected_Flag = 0;
                 DMX_channel_selected = mem_conf.dmx_first_channel;
                 DMX_channel_quantity = mem_conf.dmx_channel_quantity;
+
+                // Force first screen
+                Packet_Detected_Flag = 1;
+                dmx_buff_data[0] = 0;
+                dmx_buff_data[1] = 0;
+                dmx_buff_data[2] = 0;
 
                 // Mode Timeout enable
                 ptFTT = &DMXMode_UpdateTimers;
@@ -348,13 +353,9 @@ int main(void)
 
             if (resp == resp_need_to_save)
             {
-#ifdef SAVE_FLASH_IMMEDIATE
                 need_to_save_timer = 0;
-#endif
-#ifdef SAVE_FLASH_WITH_TIMEOUT
-                need_to_save_timer = 10000;
-#endif
                 need_to_save = 1;
+                
                 main_state = MAIN_HARD_INIT;
             }
             

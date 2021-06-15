@@ -986,7 +986,8 @@ resp_t LCD_EncoderShowSelect (const char * p_text1,
 
     case ENCODER_SELECT_SELECTED:
         LCD_2DO_RENGLON;
-        Lcd_TransmitStr((const char *) "Seleccionado... ");
+        Lcd_TransmitStr((const char *) "Selected...     ");
+        // Lcd_TransmitStr((const char *) "Seleccionado... ");
         encoder_select_state++;
         break;
         

@@ -22,142 +22,103 @@ typedef enum {
 
 } sw_actions_t;
 
+typedef enum {
+    SW_NO = 0,
+    SW_MIN,
+    SW_HALF,
+    SW_FULL
+    
+} resp_sw_t;
+
+
+#define SWITCHES_TIMER_RELOAD    5
+#define SWITCHES_THRESHOLD_FULL	1000    //5 segundos
+#define SWITCHES_THRESHOLD_HALF	50    //250 ms
+#define SWITCHES_THRESHOLD_MIN	10    //50 ms
 
 // Externals -------------------------------------------------------------------
 
 
 // Globals ---------------------------------------------------------------------
-unsigned char blinking_on = 0;
+unsigned short sw_sel_cntr = 0;
 
 
 // Module Functions to Test ----------------------------------------------------
-unsigned char SwapNibble (unsigned char a);
-void switches_up_dwn (unsigned char sw, unsigned int * password_num);
+resp_sw_t Check_SW_SEL (void);
 
 
 // Module Functions ------------------------------------------------------------
 int main (int argc, char *argv[])
 {
-    unsigned int pass = 0;
-    
-    printf("Test pass\n");
-    printf("a: ");
-    for (unsigned char i = 0; i < 8; i++)
+    resp_sw_t sw = SW_NO;
+    int t = 0;
+
+    printf("going up\n");
+    for (int i = 0; i < 220; i++)
     {
-        switches_up_dwn(selection_up, &pass);
-    }
-    printf("\n");
-    blinking_on++;
-
-    printf("a: ");
-    for (unsigned char i = 0; i < 2; i++)
-    {
-        switches_up_dwn(selection_up, &pass);
-    }
-    printf("\n");
-
-    blinking_on++;
-
-    for (unsigned char i = 0; i < 3; i++)
-    {
-        switches_up_dwn(selection_up, &pass);
-    }
-
-    blinking_on++;
-
-    for (unsigned char i = 0; i < 3; i++)
-    {
-        switches_up_dwn(selection_up, &pass);
+        sw_sel_cntr = i;
+        sw = Check_SW_SEL ();
+        t += SWITCHES_TIMER_RELOAD;
+        printf("t: %d cntr: %d sw: %d\n", t, sw_sel_cntr, sw);
     }
     
-    blinking_on = 7;
-
-    for (unsigned char i = 0; i < 3; i++)
+    printf("\ngoing down\n");
+    
+    for (int i = 221; i >= 0; i--)
     {
-        switches_up_dwn(selection_up, &pass);
+        sw_sel_cntr = i;
+        sw = Check_SW_SEL ();
+        t += SWITCHES_TIMER_RELOAD;
+        printf("t: %d cntr: %d sw: %d\n", t, sw_sel_cntr, sw);
     }
     
-    printf("\npass: 0x%08x\n", pass);
-
-    for (unsigned char j = 0; j < 8; j++)
-    {
-        blinking_on = j;
-        switches_up_dwn(selection_dwn, &pass);
-    }
-
-    printf("\npass: 0x%08x\n", pass);
-    
-    printf("Test Ended\n");
-    
+        
     return 0;
 }
 
 
+// Embedded Functions to test ----
 
-unsigned int password_num = 0;
-void switches_up_dwn (unsigned char sw_action, unsigned int * new_pass)
+#define SWITCHES_PULSES_FULL    60    //3 segs
+#define SWITCHES_PULSES_HALF    20    //1 seg
+unsigned char sw_sel_pulses_cntr = 0;
+resp_sw_t Check_SW_SEL (void)
 {
-    if (sw_action == selection_up)
+    resp_sw_t sw = SW_NO;
+    unsigned char current_pulses = 0;
+
+    // check how many pulses on counter or reset pulses counter
+    if (sw_sel_cntr)
     {
-        unsigned char a = (unsigned char) ((password_num >> (28 - blinking_on * 4)) & 0x0000000f);
-        printf("%d ", a);
-        if (a < 9)
+        for (unsigned char i = 0; i < SWITCHES_PULSES_FULL; i++)
         {
-            a++;
-            unsigned int temp = password_num;
-            temp &= (~(0x0000000f << (28 - blinking_on * 4)));
-            temp |= (a << (28 - blinking_on * 4));
-            password_num = temp;
+            if (sw_sel_cntr > (SWITCHES_THRESHOLD_MIN * i))
+                current_pulses++;
+            else
+                i = SWITCHES_PULSES_FULL;
+        }
+
+        if (current_pulses > (sw_sel_pulses_cntr + 1))
+        {
+            sw_sel_pulses_cntr++;
+
+            if (sw_sel_pulses_cntr > SWITCHES_PULSES_FULL)
+                sw = SW_FULL;
+            else if (sw_sel_pulses_cntr > SWITCHES_PULSES_HALF)
+                sw = SW_HALF;
+            else
+                sw = SW_MIN;
         }
     }
-
-    if (sw_action == selection_dwn)
+    else
     {
-        unsigned char a = (unsigned char) ((password_num >> (28 - blinking_on * 4)) & 0x0000000f);
-        printf("%d ", a);            
-        if (a)
-        {
-            a--;
-            unsigned int temp = password_num;
-            temp &= (~(0x0000000f << (28 - blinking_on * 4)));
-            temp |= (a << (28 - blinking_on * 4));
-            password_num = temp;
-        }
+        sw_sel_pulses_cntr = 0;
     }
-
-    *new_pass = password_num;
+    
+    return sw;    
 }
 
 
-// int main (int argc, char *argv[])
-// {
-//     printf("Test Nibble swaping\n");
-//     for (unsigned char i = 0; i < 0x0f; i++)
-//     {
-//         printf("0x%02x 0x%02x\n", i, SwapNibble(i));
-//     }
-    
-//     printf("Test Ended\n");
-    
-//     return 0;
-// }
-
-
-unsigned char SwapNibble (unsigned char a)
-{
-	unsigned char result = 0;
-
-	if (a & 0x01)
-		result |= 0x08;
-	if (a & 0x02)
-		result |= 0x04;
-	if (a & 0x04)
-		result |= 0x02;
-	if (a & 0x08)
-		result |= 0x01;
-
-	return result;
-}
 
 //--- end of file ---//
 

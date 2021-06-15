@@ -32,8 +32,8 @@
 
 // -- Dmx to Pwm filter lenght --
 // #define USE_FILTER_LENGHT_16
-// #define USE_FILTER_LENGHT_32
-#define USE_NO_FILTER
+#define USE_FILTER_LENGHT_32
+// #define USE_NO_FILTER
 
 // -- Dmx to Pwm channels setup
 #define USE_BRIGHT_AND_TEMP
@@ -120,8 +120,8 @@
 
 #define SWITCHES_TIMER_RELOAD    5
 #define SWITCHES_THRESHOLD_FULL	1000    //5 segundos
-#define SWITCHES_THRESHOLD_HALF	50    //0.5 segundos
-#define SWITCHES_THRESHOLD_MIN	5    //25 ms
+#define SWITCHES_THRESHOLD_HALF	50    //250 ms
+#define SWITCHES_THRESHOLD_MIN	10    //50 ms
 
 
 #define CH1_VAL_OFFSET    0
