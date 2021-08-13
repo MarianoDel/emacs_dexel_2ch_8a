@@ -250,18 +250,18 @@ void TIM16_Init (void)
 
     //Configuracion del timer.
     TIM16->CR1 = 0x00;		//clk int / 1; upcounting; uev
-    TIM16->ARR = 0;
+    TIM16->ARR = 0xFFFF;
     TIM16->CNT = 0;
     
     TIM16->PSC = 47;
 
-    // TIM16->CR1 |= TIM_CR1_CEN;
+    TIM16->CR1 |= TIM_CR1_CEN;
 
-    // Enable timer int Update Enable
-    TIM16->DIER |= TIM_DIER_UIE;
+    // // Enable timer int Update Enable
+    // TIM16->DIER |= TIM_DIER_UIE;
     
-    NVIC_EnableIRQ(TIM16_IRQn);
-    NVIC_SetPriority(TIM16_IRQn, 8);
+    // NVIC_EnableIRQ(TIM16_IRQn);
+    // NVIC_SetPriority(TIM16_IRQn, 8);
 }
 
 

@@ -10,8 +10,6 @@
 
 // Includes --------------------------------------------------------------------
 #include "menues.h"
-// #include "hard.h"
-// #include "tim.h"
 #include "lcd_utils.h"
 #include "temperatures.h"
 
@@ -107,9 +105,6 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             menu_state = MENU_CONF_MANUAL_OR_DMX;
         }
 
-        // if (sw_action != selection_none)    //algo se cambio, aviso
-        //     resp = resp_change;
-
         break;
         
     case MENU_SHOW_CHANNEL:
@@ -129,9 +124,6 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             menu_state = MENU_CONF_CHANNEL;
         }
 
-        // if (actions != selection_none)    //algo se cambio, aviso
-        //     resp = resp_change;
-
         break;
 
     case MENU_SHOW_MAX_CURRENT:
@@ -149,9 +141,6 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             LCD_EncoderChangeReset();
             menu_state = MENU_CONF_MAX_CURRENT;
         }
-
-        // if (actions != selection_none)    //algo se cambio, aviso
-        //     resp = resp_change;
 
         break;
 
@@ -172,9 +161,6 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             menu_state = MENU_CONF_OPERATION_MODE;
         }
 
-        // if (actions != selection_none)    //algo se cambio, aviso
-        //     resp = resp_change;
-
         break;
 
     case MENU_SHOW_TEMP:
@@ -193,9 +179,6 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             LCD_EncoderChangeReset();
             menu_state = MENU_CONF_TEMP;
         }
-
-        // if (actions != selection_none)    //algo se cambio, aviso
-        //     resp = resp_change;
 
         break;
         
@@ -216,9 +199,6 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             menu_state = MENU_END_CONF;
         }
 
-        // if (actions != selection_none)    //algo se cambio, aviso
-        //     resp = resp_change;
-        
         break;
         
         // Configuration Menues
@@ -239,9 +219,6 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             menu_state = MENU_SHOW_MANUAL_OR_DMX;
             resp = resp_continue;
         }
-
-        // if (actions != selection_none)    //algo se cambio, aviso
-        //     resp = resp_change;
 
         break;
 
@@ -356,18 +333,29 @@ unsigned char ConvertCurrentFromMemory (mem_bkp_t * config)
 {
     unsigned char curr = 0;
 
-    if (config->max_current_channels[0] > 192)
-        curr = 4;
-    else if (config->max_current_channels[0] > 128)
-        curr = 3;
-    else if (config->max_current_channels[0] > 64)
-        curr = 2;
+    if (config->current_eight_amps == 0)
+    {
+        if (config->max_current_channels[0] > 192)
+            curr = 4;
+        else if (config->max_current_channels[0] > 128)
+            curr = 3;
+        else if (config->max_current_channels[0] > 64)
+            curr = 2;
+        else
+            curr = 1;
+    }
     else
-        curr = 1;
+    {
+        if (config->max_current_channels[0] > 224)
+            curr = 8;
+        else if (config->max_current_channels[0] > 192)
+            curr = 7;
+        else if (config->max_current_channels[0] > 160)
+            curr = 6;
+        else
+            curr = 5;
+    }
         
-    if (config->current_eight_amps)
-        curr += 4;
-
     return curr;
 }
 
@@ -379,42 +367,50 @@ void ConvertCurrentToMemory (mem_bkp_t * config, unsigned char current)
     case 8:
         config->current_eight_amps = 1;
         config->max_current_channels[0] = 255;
+        config->max_current_channels[1] = 255;
         break;
 
     case 7:
         config->current_eight_amps = 1;
-        config->max_current_channels[0] = 192;
+        config->max_current_channels[0] = 224;
+        config->max_current_channels[1] = 224;        
         break;
 
     case 6:
         config->current_eight_amps = 1;
-        config->max_current_channels[0] = 128;
+        config->max_current_channels[0] = 192;
+        config->max_current_channels[1] = 192;
         break;
 
     case 5:
         config->current_eight_amps = 1;
-        config->max_current_channels[0] = 64;
+        config->max_current_channels[0] = 160;
+        config->max_current_channels[1] = 160;        
         break;
 
     case 4:
         config->current_eight_amps = 0;
         config->max_current_channels[0] = 255;
+        config->max_current_channels[1] = 255;        
         break;
 
     case 3:
         config->current_eight_amps = 0;
         config->max_current_channels[0] = 192;
+        config->max_current_channels[1] = 192;        
         break;
 
     case 2:
         config->current_eight_amps = 0;
         config->max_current_channels[0] = 128;
+        config->max_current_channels[1] = 128;        
         break;
  
     case 1:
     default:
         config->current_eight_amps = 0;
         config->max_current_channels[0] = 64;
+        config->max_current_channels[1] = 64;        
         break;
 
     }

@@ -59,6 +59,24 @@ void TF_Led (void)
 }
 
 
+void TF_ENA_CH1_ENA_CH2_SW_SEL (void)
+{
+    while (1)
+    {
+        if (SW_SEL)
+        {
+            ENA_CH1_ON;
+            ENA_CH2_OFF;
+        }
+        else
+        {
+            ENA_CH1_OFF;
+            ENA_CH2_ON;
+        }
+    }    
+}
+
+
 void TF_SW_UP (void)
 {
     while (1)
@@ -286,6 +304,21 @@ void TF_Pwm_Channels (void)
     PWM_Update_CH2(DUTY_50_PERCENT);
                    
     while (1);
+    
+}
+
+
+void TF_Soft_Pwm_Channels (void)
+{
+    PWM_Soft_Init();
+    
+    PWM_Soft_Update_Channel1(5);
+    PWM_Soft_Update_Channel2(0);
+                   
+    while (1)
+    {
+        PWM_Soft_Update_Channels();
+    }
     
 }
 

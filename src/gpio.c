@@ -16,7 +16,7 @@
 #define GPIOA_ENABLE
 #define GPIOB_ENABLE
 // #define GPIOC_ENABLE
-// #define GPIOF_ENABLE
+#define GPIOF_ENABLE
 
 #define WITH_EXTI
 //--- End of Defines for Configuration --------------------------
@@ -139,8 +139,8 @@ void GPIO_Config (void)
         GPIOF_CLK_ON;
 
     temp = GPIOF->MODER;
-    temp &= 0xFFFFFFFF;
-    temp |= 0x00000000;
+    temp &= 0xFFFFFFF0;
+    temp |= 0x00000005;
     GPIOF->MODER = temp;
 
     temp = GPIOF->OTYPER;
@@ -149,7 +149,7 @@ void GPIO_Config (void)
     GPIOF->OTYPER = temp;
 
     temp = GPIOF->OSPEEDR;
-    temp &= 0xFFFFFFFF;
+    temp &= 0xFFFFFFF0;
     temp |= 0x00000000;
     GPIOF->OSPEEDR = temp;
 

@@ -37,6 +37,12 @@ void PWMChannelsReset (void);
 unsigned short PWM_Map_From_Dmx (unsigned char);
 // void PWM_Set_PwrCtrl (unsigned char *, unsigned char, unsigned short);
 
+// Soft PWM functions
+void PWM_Soft_Init (void);
+void PWM_Soft_Update_Channels (void);
+void PWM_Soft_Update_Channel1 (unsigned short);
+void PWM_Soft_Update_Channel2 (unsigned short);
+
 
 #endif    /* __PWM_H_ */
 

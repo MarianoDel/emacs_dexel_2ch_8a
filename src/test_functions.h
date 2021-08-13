@@ -20,6 +20,7 @@
 
 // Exported Functions ----------------------------------------------------------
 void TF_Led (void);
+void TF_ENA_CH1_ENA_CH2_SW_SEL (void);
 void TF_SW_UP (void);
 void TF_SW_DWN (void);
 void TF_SW_SEL (void);
@@ -33,6 +34,7 @@ void TF_MenuFunction (void);
 void TF_Dmx_Packet (void);
 void TF_Dmx_Packet_Data (void);
 void TF_Pwm_Channels (void);
+void TF_Soft_Pwm_Channels (void);
 void TF_Temp_Channel (void);
 
 #endif    /* _TEST_FUNTIONS_H_ */

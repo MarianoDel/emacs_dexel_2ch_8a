@@ -15,7 +15,8 @@
 
 //-- Defines For Configuration -------------------
 //---- Configuration for Hardware Versions -------
-#define HARDWARE_VERSION_1_0    //micro F030K6T6
+#define HARDWARE_VERSION_1_1    //fuente 48V->12V en placa control
+// #define HARDWARE_VERSION_1_0    //micro F030K6T6
 
 
 // #define SOFTWARE_VERSION_1_1
@@ -35,15 +36,90 @@
 #define USE_FILTER_LENGHT_32
 // #define USE_NO_FILTER
 
-// -- Dmx to Pwm channels setup
-#define USE_BRIGHT_AND_TEMP
-// #define USE_DIRECT_CHANNELS
-
 
 //---- End of Features Configuration ----------
 
 
 // Exported Pinout Names -------------------------------------------------------
+#ifdef HARDWARE_VERSION_1_1
+//GPIOF pin0
+#define ENA_CH1    ((GPIOF->ODR & 0x0001) != 0)
+#define ENA_CH1_ON    (GPIOF->BSRR = 0x00000001)
+#define ENA_CH1_OFF    (GPIOF->BSRR = 0x00010000)
+
+//GPIOF pin1
+#define ENA_CH2    ((GPIOF->ODR & 0x0002) != 0)
+#define ENA_CH2_ON    (GPIOF->BSRR = 0x00000002)
+#define ENA_CH2_OFF    (GPIOF->BSRR = 0x00020000)
+
+//GPIOA pin0    
+//GPIOA pin1    
+//GPIOA pin2    
+//GPIOA pin3    Lcd interface
+
+//GPIOA pin4
+#define LCD_E    ((GPIOA->ODR & 0x0010) != 0)
+#define LCD_E_ON    (GPIOA->BSRR = 0x00000010)
+#define LCD_E_OFF    (GPIOA->BSRR = 0x00100000)
+
+//GPIOA pin5    
+#define LCD_RS    ((GPIOA->ODR & 0x0020) != 0)
+#define LCD_RS_ON    (GPIOA->BSRR = 0x00000020)
+#define LCD_RS_OFF    (GPIOA->BSRR = 0x00200000)
+
+//GPIOA pin6    TIM3_CH1
+//GPIOA pin7    TIM3_CH2
+
+//GPIOB pin0    Adc LM335_VO
+
+//GPIOB pin1
+#define CTRL_BKL    ((GPIOB->ODR & 0x0002) != 0)
+#define CTRL_BKL_ON    (GPIOB->BSRR = 0x00000002)
+#define CTRL_BKL_OFF    (GPIOB->BSRR = 0x00020000)
+
+
+//GPIOA pin8    Exti input
+#define DMX_INPUT    ((GPIOA->IDR & 0x0100) != 0)
+
+//GPIOA pin9    F_CH1
+
+//GPIOA pin10    Usart1 Rx
+
+//GPIOA pin11    F_CH2
+
+//GPIOA pin12
+#define LED    ((GPIOA->ODR & 0x1000) == 0)
+#define LED_OFF    (GPIOA->BSRR = 0x00001000)
+#define LED_ON    (GPIOA->BSRR = 0x10000000)
+
+
+//GPIOA pin13
+//GPIOA pin14
+
+//GPIOA pin15    
+#define I_SEL    ((GPIOA->ODR & 0x8000) == 0)
+#define I_SEL_ON    (GPIOA->BSRR = 0x00008000)
+#define I_SEL_OFF    (GPIOA->BSRR = 0x80000000)
+
+
+//GPIOB pin3
+#define SW_SEL    ((GPIOB->IDR & 0x0008) == 0)
+
+//GPIOB pin4
+#define SW_UP    ((GPIOB->IDR & 0x0010) == 0)
+
+//GPIOB pin5
+#define SW_DWN    ((GPIOB->IDR & 0x0020) == 0)
+
+//GPIOB pin6
+#define CTRL_FAN    ((GPIOB->ODR & 0x0040) != 0)
+#define CTRL_FAN_ON    (GPIOB->BSRR = 0x00000040)
+#define CTRL_FAN_OFF    (GPIOB->BSRR = 0x00400000)
+
+//GPIOB pin7
+
+#endif    //HARDWARE_VER_1_1
+
 #ifdef HARDWARE_VERSION_1_0
 //GPIOA pin0    
 //GPIOA pin1    
