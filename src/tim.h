@@ -65,6 +65,12 @@
 #define DisablePreload_TIM3_CH1    (TIM3->CCMR1 &= ~TIM_CCMR1_OC1PE)
 #define DisablePreload_TIM3_CH2    (TIM3->CCMR1 &= ~TIM_CCMR1_OC2PE)
 
+#define EnablePreload_TIM1_CH2    (TIM1->CCMR1 |= TIM_CCMR1_OC2PE)
+#define EnablePreload_TIM1_CH4    (TIM1->CCMR1 |= TIM_CCMR2_OC4PE)
+
+#define DisablePreload_TIM1_CH2    (TIM1->CCMR1 &= ~TIM_CCMR1_OC2PE)
+#define DisablePreload_TIM1_CH4    (TIM1->CCMR1 &= ~TIM_CCMR2_OC4PE)
+
 #define CTRL_CH1(X)    Update_TIM3_CH1(X)
 #define CTRL_CH2(X)    Update_TIM3_CH2(X)
 #define CTRL_CH3(X)    Update_TIM3_CH3(X)
@@ -87,6 +93,7 @@ void TIM16Disable (void);
 void TIM17_IRQHandler (void);
 void TIM_17_Init(void);
 void Update_TIM1_CH1 (unsigned short);
+void Update_TIM1_CH2 (unsigned short);
 void Update_TIM1_CH4 (unsigned short);
 void Update_TIM3_CH1 (unsigned short);
 void Update_TIM3_CH2 (unsigned short);

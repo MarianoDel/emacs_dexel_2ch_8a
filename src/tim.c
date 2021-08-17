@@ -80,6 +80,12 @@ void Update_TIM1_CH1 (unsigned short a)
 }
 
 
+void Update_TIM1_CH2 (unsigned short a)
+{
+    TIM1->CCR2 = a;
+}
+
+
 void Update_TIM1_CH4 (unsigned short a)
 {
     TIM1->CCR4 = a;
@@ -103,25 +109,25 @@ void TIM_1_Init (void)
 
     //Configuracion del timer.
     TIM1->CR1 = 0x00;		//clk int / 1; upcounting
-    TIM1->CR2 |= TIM_CR2_MMS_1;		//UEV -> TRG0
+    // TIM1->CR2 |= TIM_CR2_MMS_1;		//UEV -> TRG0
 
     TIM1->SMCR = 0x0000;
-    TIM1->CCMR1 = 0x0060;    //CH1 output PWM mode 1 (channel active TIM1->CNT < TIM1->CCR1)
+    TIM1->CCMR1 = 0x6000;    //CH2 output PWM mode 1 (channel active TIM1->CNT < TIM1->CCR1)
     TIM1->CCMR2 = 0x6000;    //CH4 output PWM mode 1 (channel active TIM1->CNT < TIM1->CCR1)
     
-    TIM1->CCER |= TIM_CCER_CC4E | TIM_CCER_CC1E;	//CH4 y CH1 enable on pin direct polarity
+    TIM1->CCER |= TIM_CCER_CC4E | TIM_CCER_CC2E;    //CH4 y CH2 enable on pin direct polarity
 
     TIM1->BDTR |= TIM_BDTR_MOE;
     
-    TIM1->ARR = DUTY_100_PERCENT;
+    TIM1->ARR = 1000;
     TIM1->CNT = 0;
 
-    TIM1->PSC = 0;
+    TIM1->PSC = 47;
 
     //Alternate Fuction Pin Configurations
     temp = GPIOA->AFR[1];
-    temp &= 0xFFFF0FF0;    
-    temp |= 0x00002002;    //PA11 -> AF2; PA8 -> AF2
+    temp &= 0xFFFF0F0F;    
+    temp |= 0x00002020;    //PA11 -> AF2; PA9 -> AF2
     GPIOA->AFR[1] = temp;
 
     // Enable timer interrupt ver UDIS

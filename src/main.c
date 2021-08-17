@@ -138,7 +138,7 @@ int main(void)
     // TF_Dmx_Packet ();
     // TF_Dmx_Packet_Data ();
     // TF_Pwm_Channels ();
-    // TF_Soft_Pwm_Channels ();
+    // TF_F_Channels_As_Pwm ();
     // TF_Temp_Channel ();    
     // End Hard Tests -------------------------------
 
@@ -148,13 +148,14 @@ int main(void)
     PWMChannelsReset ();
     EnablePreload_PWM1;
     EnablePreload_PWM2;
-
-    // Soft PWM init
-    PWM_Soft_Init();
-    PWM_Soft_Update_Channel1(0);
-    PWM_Soft_Update_Channel2(0);
-
-
+    
+    // Timer for PWM on ENAs
+    TIM_1_Init ();
+    PWM_Update_ENA1 (0);
+    PWM_Update_ENA2 (0);
+    EnablePreload_ENA1;
+    EnablePreload_ENA2;
+    
     // Usart and Timer for DMX
     Usart1Config ();
     TIM_14_Init ();
@@ -392,8 +393,6 @@ int main(void)
         // things that not depends on the main status
         UpdateSwitches();
 
-        PWM_Soft_Update_Channels ();
-
 #ifdef USE_TEMP_PROT
         if (main_state != MAIN_IN_OVERTEMP)
         {
@@ -445,12 +444,17 @@ typedef enum {
     
 } filters_and_offsets_e;
 
-unsigned char ch1_last_pwm = 0;
-unsigned char ch1_shutdown = 0;
-unsigned char ch1_powerup = 0;
-unsigned char ch2_last_pwm = 0;
-unsigned char ch2_shutdown = 0;
-unsigned char ch2_powerup = 0;
+
+#define CHNL_ENA_DOWN    0
+#define CHNL_ENA_POWERDWN    1
+#define CHNL_ENA_POWERUP    2
+#define CHNL_ENA_UP    3
+
+unsigned char ch1_enable_state = 0;
+unsigned char ch2_enable_state = 0;
+unsigned short ch1_last_pwm = 0;
+unsigned short ch2_last_pwm = 0;
+
 
 filters_and_offsets_e filters_sm = FILTERS_BKP_CHANNELS;
 unsigned short limit_output [2] = { 0 };
@@ -548,40 +552,26 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 
         // check for led shutdown
 #ifdef HARDWARE_VERSION_1_1
-        // if ((ch1_pwm == 0) && (!ch1_shutdowm))
-        //     ch1_shutdowm = 1;
-
-        // if ((ch2_pwm == 0) && (!ch2_shutdowm))
-        //     ch2_shutdowm = 1;
-
-        if (ch1_pwm == 0)
+        if ((!ch1_pwm) && (ch1_enable_state == CHNL_ENA_UP))
         {
-            if (!ch1_shutdown)
-            {
-                ch1_last_pwm = 100;
-                ch1_shutdown = 1;
-            }
-        }
-        else
-        {
-            ch1_powerup = 1;
-            ch1_shutdown = 0;
+            ch1_enable_state = CHNL_ENA_POWERDWN;
         }
 
-        if (ch2_pwm == 0)
+        if ((ch1_pwm) && (ch1_enable_state == CHNL_ENA_DOWN))
         {
-            if (!ch2_shutdown)
-            {
-                ch2_last_pwm = 100;
-                ch2_shutdown = 1;
-            }
-        }
-        else
-        {
-            ch2_powerup = 1;
-            ch2_shutdown = 0;
+            ch1_enable_state = CHNL_ENA_POWERUP;
         }
 
+        if ((!ch2_pwm) && (ch2_enable_state == CHNL_ENA_UP))
+        {
+            ch2_enable_state = CHNL_ENA_POWERDWN;
+        }
+
+        if ((ch2_pwm) && (ch2_enable_state == CHNL_ENA_DOWN))
+        {
+            ch2_enable_state = CHNL_ENA_POWERUP;
+        }
+        
 #endif
         
 #endif    //USE_FILTER_LENGHT_32
@@ -614,42 +604,61 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 
         PWM_Update_CH2(ch2_pwm);        
 #endif
-        // if (LED)
-        //     LED_OFF;
-        // else
-        //     LED_ON;
 
         filters_sm++;
         break;
         
     case FILTERS_DUMMY1:
 #ifdef HARDWARE_VERSION_1_1
-        // shutting down sequence
-        if ((ch1_shutdown) && (ch1_last_pwm))
+        // UP sequence
+        if (ch1_enable_state == CHNL_ENA_POWERUP)
         {
-            ch1_last_pwm--;
-            PWM_Soft_Update_Channel1(ch1_last_pwm);
+            if (ch1_last_pwm <= 1000)
+            {
+                ch1_last_pwm += 10;
+                PWM_Update_ENA1(ch1_last_pwm);
+            }
+            else
+                ch1_enable_state = CHNL_ENA_UP;
         }
 
-        if ((ch2_shutdown) && (ch2_last_pwm))
+        // DWN sequence
+        if (ch1_enable_state == CHNL_ENA_POWERDWN)
         {
-            ch2_last_pwm--;
-            PWM_Soft_Update_Channel2(ch2_last_pwm);
+            if (ch1_last_pwm > 0)
+            {
+                ch1_last_pwm -= 10;
+                PWM_Update_ENA1(ch1_last_pwm);
+            }
+            else
+                ch1_enable_state = CHNL_ENA_DOWN;
         }
 
-        // powerup sequence
-        if ((ch1_powerup) && (ch1_last_pwm < 100))
+        // UP sequence
+        if (ch2_enable_state == CHNL_ENA_POWERUP)
         {
-            ch1_last_pwm++;
-            PWM_Soft_Update_Channel1(ch1_last_pwm);
+            if (ch2_last_pwm <= 1000)
+            {
+                ch2_last_pwm += 10;
+                PWM_Update_ENA2(ch2_last_pwm);
+            }
+            else
+                ch2_enable_state = CHNL_ENA_UP;
         }
 
-        if ((ch2_powerup) && (ch2_last_pwm < 100))
+        // DWN sequence
+        if (ch2_enable_state == CHNL_ENA_POWERDWN)
         {
-            ch2_last_pwm++;
-            PWM_Soft_Update_Channel2(ch2_last_pwm);
+            if (ch2_last_pwm > 0)
+            {
+                ch2_last_pwm -= 10;
+                PWM_Update_ENA2(ch2_last_pwm);
+            }
+            else
+                ch2_enable_state = CHNL_ENA_DOWN;
         }
         
+
 #endif
 
         

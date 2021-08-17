@@ -25,6 +25,7 @@
 
 //---- Features Configuration -----------------
 #define USE_TEMP_PROT
+#define USE_F_CHNLS_FOR_ENABLE
 
 // -- Freq for the timers
 #define USE_PWM_16000_FREQ_1KHZ

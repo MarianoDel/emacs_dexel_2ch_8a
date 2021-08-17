@@ -30,6 +30,15 @@
 #define PWM_Update_CH1(X)    Update_TIM3_CH1(X)
 #define PWM_Update_CH2(X)    Update_TIM3_CH2(X)
 
+#define EnablePreload_ENA1    EnablePreload_TIM1_CH2
+#define EnablePreload_ENA2    EnablePreload_TIM1_CH4
+
+#define DisablePreload_ENA1    DisablePreload_TIM1_CH2
+#define DisablePreload_ENA2    DisablePreload_TIM1_CH4
+
+#define PWM_Update_ENA1(X)    Update_TIM1_CH2(X)
+#define PWM_Update_ENA2(X)    Update_TIM1_CH4(X)
+
 
 
 // Exported Functions ----------------------------------------------------------
@@ -37,11 +46,6 @@ void PWMChannelsReset (void);
 unsigned short PWM_Map_From_Dmx (unsigned char);
 // void PWM_Set_PwrCtrl (unsigned char *, unsigned char, unsigned short);
 
-// Soft PWM functions
-void PWM_Soft_Init (void);
-void PWM_Soft_Update_Channels (void);
-void PWM_Soft_Update_Channel1 (unsigned short);
-void PWM_Soft_Update_Channel2 (unsigned short);
 
 
 #endif    /* __PWM_H_ */
