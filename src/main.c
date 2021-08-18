@@ -544,11 +544,13 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 #ifdef USE_FILTER_LENGHT_32
         // channel 1
         ch1_pwm = MA32_U16Circular (&st_sp1, *(limit_output + CH1_VAL_OFFSET));
-        PWM_Update_CH1(ch1_pwm);
+        if (ch1_enable_state != CHNL_ENA_POWERDWN)
+            PWM_Update_CH1(ch1_pwm);
 
         // channel 2
         ch2_pwm = MA32_U16Circular (&st_sp2, *(limit_output + CH2_VAL_OFFSET));
-        PWM_Update_CH2(ch2_pwm);
+        if (ch2_enable_state != CHNL_ENA_POWERDWN)
+            PWM_Update_CH2(ch2_pwm);
 
         // check for led shutdown
 #ifdef HARDWARE_VERSION_1_1
