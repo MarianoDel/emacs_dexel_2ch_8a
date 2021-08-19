@@ -36,3 +36,41 @@
     CLOSED: [2021-04-03 Sat 09:34]
 
 *** TODO Menues de uso DMX y Manual
+
+* Modificaciones de Programa
+** Dos modos de operacion
+*** CCT o 1ch en Dmx
+    - CCT con pantalla
+      CCT:  2700K     Dmx
+      Dim: 100.0%     001
+
+    - 1ch con pantalla
+      Dim: 100.0%     Dmx
+                      001
+
+*** CCT o 1ch en Manual
+    - CCT con pantalla
+      CCT:  2700K     Man
+      Dim: 100.0%
+
+    - 1ch con pantalla
+      Dim: 100.0%     Man
+
+*** Cambio DMX a Manual automatico
+    - el cambio es automatico, si detecta consola va a dmx
+    - si no tiene consola va a manual y guarda los valores del dmx
+
+*** Cambio de address DMX
+    - Se habilita el cambio directo de address en el modo DMX
+    - subir o bajar cambia el address directamente, se guarda despues de un tiempo
+
+** Configuracion
+*** CCT o 1ch
+    - el modo no lo puede elegir el usuario
+    - para CCT poner dos modos 
+      CCT1 2700 a 6500K
+      CCT2 3200 a 5700K
+
+*** Temperatura de FAN
+*** Temperatura actual
+*** Maxima corriente por canal

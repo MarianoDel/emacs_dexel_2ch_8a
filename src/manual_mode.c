@@ -11,6 +11,7 @@
 // Includes --------------------------------------------------------------------
 #include "manual_mode.h"
 #include "lcd_utils.h"
+#include "dmx_utils.h"
 #include "parameters.h"
 
 #include <stdio.h>
@@ -133,7 +134,7 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
     switch (mm_menu_state)
     {
     case MM_MENU_INIT:
-        LCD_Writel1("  Manual Mode   ");
+        // LCD_Writel1("  Manual Mode   ");
 
         DataShow (SHOW_ALL,
                   *(ch + 0),
@@ -340,48 +341,117 @@ void DataShow (unsigned char state, unsigned char bright, unsigned char temp, un
     switch (state)
     {
     case SHOW_ALL:
-        if (ch_mode == 0)
+        if (ch_mode == CCT1_MODE)
         {
-            sprintf(s_temp, "Brgt: %3d T: %3d",
-                    bright,
-                    temp);
+            unsigned short color = 0;
+            ColorTemp1 (temp, &color);
+            sprintf(s_temp, "Cct: %dK   Man", color);
+            LCD_Writel1(s_temp);
+
+            unsigned char dmx_int = 0;
+            unsigned char dmx_dec = 0;
+            Percentage (bright, &dmx_int, &dmx_dec);            
+            sprintf(s_temp, "Dim:%3d.%d%%      ",
+                    dmx_int,
+                    dmx_dec);
+            LCD_Writel2(s_temp);
         }
-        else
+
+        if (ch_mode == CCT2_MODE)
         {
-            sprintf(s_temp, "c1: %3d  c2: %3d",
-                    bright,
-                    temp);
+            unsigned short color = 0;
+            ColorTemp2 (temp, &color);
+            sprintf(s_temp, "Cct: %dK   Man", color);
+            LCD_Writel1(s_temp);
+
+            unsigned char dmx_int = 0;
+            unsigned char dmx_dec = 0;
+            Percentage (bright, &dmx_int, &dmx_dec);
+            sprintf(s_temp, "Dim:%3d.%d%%      ",            
+                    dmx_int,
+                    dmx_dec);
+            LCD_Writel2(s_temp);
+        }
+        
+        if (ch_mode == ONECH_MODE)
+        {
+            unsigned char dmx_int = 0;
+            unsigned char dmx_dec = 0;
+            Percentage (bright, &dmx_int, &dmx_dec);
+            sprintf(s_temp, "Dim:%3d.%d%%   Man",
+                    dmx_int,
+                    dmx_dec);
+            LCD_Writel1(s_temp);
+            
+            sprintf(s_temp, "                ");
+            LCD_Writel2(s_temp);
         }
         break;
 
     case SHOW_ONLY_TEMP:
-        if (ch_mode == 0)
+        if (ch_mode == CCT1_MODE)
         {
-            sprintf(s_temp, "Brgt:     T: %3d",
-                    temp);
+            unsigned short color = 0;
+            ColorTemp1 (temp, &color);
+            sprintf(s_temp, "Cct: %dK   Man", color);
+            LCD_Writel1(s_temp);
+
+            sprintf(s_temp, "Dim:            ");
+            LCD_Writel2(s_temp);
         }
-        else
+
+        if (ch_mode == CCT2_MODE)
         {
-            sprintf(s_temp, "c1:      c2: %3d",
-                    temp);
+            unsigned short color = 0;
+            ColorTemp2 (temp, &color);
+            sprintf(s_temp, "Cct: %dK   Man", color);
+            LCD_Writel1(s_temp);
+
+            sprintf(s_temp, "Dim:            ");
+            LCD_Writel2(s_temp);
+        }
+        
+        if (ch_mode == ONECH_MODE)
+        {
+            sprintf(s_temp, "Dim:         Man");
+            LCD_Writel1(s_temp);
+
+            sprintf(s_temp, "                ");
+            LCD_Writel2(s_temp);
         }
         break;
 
     case SHOW_ONLY_BRIGHT:
-        if (ch_mode == 0)
+        if ((ch_mode == CCT1_MODE) ||
+            (ch_mode == CCT2_MODE))
         {
-            sprintf(s_temp, "Brgt: %3d T:    ",
-                    bright);
+            sprintf(s_temp, "Cct:         Man");
+            LCD_Writel1(s_temp);    
+
+            unsigned char dmx_int = 0;
+            unsigned char dmx_dec = 0;
+            Percentage (bright, &dmx_int, &dmx_dec);
+            sprintf(s_temp, "Dim:%3d.%d%%      ",            
+                    dmx_int,
+                    dmx_dec);
+            LCD_Writel2(s_temp);
         }
-        else
+
+        if (ch_mode == ONECH_MODE)
         {
-            sprintf(s_temp, "c1: %3d  c2:    ",        
-                    bright);
+            unsigned char dmx_int = 0;
+            unsigned char dmx_dec = 0;
+            Percentage (bright, &dmx_int, &dmx_dec);
+            sprintf(s_temp, "Dim:%3d.%d%%   Man",
+                    dmx_int,
+                    dmx_dec);
+            LCD_Writel1(s_temp);
+            
+            sprintf(s_temp, "                ");
+            LCD_Writel2(s_temp);
         }
         break;
     }
-
-    LCD_Writel2(s_temp);    
 }
 
 

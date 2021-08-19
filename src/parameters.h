@@ -19,6 +19,15 @@ typedef enum {
 } programs_type_e;
 
 
+typedef enum {
+
+    CCT1_MODE = 0,
+    CCT2_MODE,
+    ONECH_MODE
+    
+} channels_operation_mode_e;
+
+
 //-- Memory Struct to Save --------------------
 typedef struct parameters {
 

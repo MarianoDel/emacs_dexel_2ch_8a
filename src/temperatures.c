@@ -47,6 +47,21 @@ unsigned char Temp_TempToDegrees (unsigned short temp)
 }
 
 
+unsigned char Temp_TempToDegreesExtended (unsigned short temp)
+{
+    unsigned int calc = 0;
+    unsigned short dx = TEMP_IN_85 - TEMP_IN_30;
+    unsigned short dy = 85 - 30;
+
+    calc = temp * dy;
+    calc = calc / dx;
+
+    calc = calc - TEMP_DEG_OFFSET + 13;
+
+    return (unsigned char) calc;
+}
+
+
 unsigned short Temp_DegreesToTemp (unsigned char deg)
 {
     if (deg < TEMP_DEG_MIN)

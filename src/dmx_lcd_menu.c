@@ -12,6 +12,10 @@
 #include "dmx_lcd_menu.h"
 #include "parameters.h"
 #include "lcd_utils.h"
+#include "dmx_utils.h"
+
+#include "temperatures.h"
+#include "adc.h"
 
 
 #include <stdio.h>
@@ -28,7 +32,7 @@ typedef enum {
 
 
 // Externals -------------------------------------------------------------------
-
+extern volatile unsigned short adc_ch [];
 
 // Globals ---------------------------------------------------------------------
 
@@ -38,7 +42,6 @@ static dmx_menu_e dmx_menu_state = DMX_MENU_INIT;
 
 
 // Module Private Functions ----------------------------------------------------
-void Percentage (unsigned char, unsigned char *, unsigned char *);
 
 
 // Module Functions ------------------------------------------------------------
@@ -55,28 +58,73 @@ resp_t DMXLcdMenu (dmx_menu_data_t * pmenu_data)
 
     switch (dmx_menu_state)
     {
-    case DMX_MENU_INIT:
-        if (pmenu_data->show_addres)
-            sprintf(s_temp, "ADDR: %03d      D", *pmenu_data->dmx_first_chnl);
-        else
-            strcpy(s_temp, "ADDR:          D");                
+    case DMX_MENU_INIT:        
+        if (pmenu_data->channels_mode == CCT1_MODE)
+        {
+            unsigned short color = 0;
+            ColorTemp1 (*((pmenu_data->pchannels) + 1), &color);
+            sprintf(s_temp, "Cct: %dK   Dmx", color);
+        }
+
+        if (pmenu_data->channels_mode == CCT2_MODE)
+        {
+            unsigned short color = 0;
+            ColorTemp2 (*((pmenu_data->pchannels) + 1), &color);
+            sprintf(s_temp, "Cct: %dK   Dmx", color);            
+        }
+
+        if (pmenu_data->channels_mode == ONECH_MODE)
+        {
+            unsigned char dmx_data = *((pmenu_data->pchannels) + 0);
+            unsigned char dmx_int = 0;
+            unsigned char dmx_dec = 0;
+
+            Percentage (dmx_data, &dmx_int, &dmx_dec);            
+            sprintf(s_temp, "Dim:%3d.%d%%   Dmx",
+                    dmx_int,
+                    dmx_dec);
+        }
         
         LCD_Writel1(s_temp);
         dmx_menu_state++;
         break;
 
     case DMX_MENU_CHECK_CHNLS:
-        if (pmenu_data->channels_mode == 0)
+        if ((pmenu_data->channels_mode == CCT1_MODE) ||
+            (pmenu_data->channels_mode == CCT2_MODE))
         {
-            sprintf(s_temp, "Brgt: %3d T: %3d",
-                    *((pmenu_data->pchannels) + 0),
-                    *((pmenu_data->pchannels) + 1));
+            unsigned char dmx_data = *((pmenu_data->pchannels) + 0);
+            unsigned char dmx_int = 0;
+            unsigned char dmx_dec = 0;
+
+            Percentage (dmx_data, &dmx_int, &dmx_dec);            
+
+            if (pmenu_data->show_addres)
+            {
+                sprintf(s_temp, "Dim:%3d.%d%%   %03d",
+                        dmx_int,
+                        dmx_dec,
+                        *(pmenu_data->dmx_first_chnl));
+            }
+            else
+            {
+                sprintf(s_temp, "Dim:%3d.%d%%      ",
+                        dmx_int,
+                        dmx_dec);
+            }            
         }
-        else
+
+        if (pmenu_data->channels_mode == ONECH_MODE)
         {
-            sprintf(s_temp, "c1: %3d  c2: %3d",
-                    *((pmenu_data->pchannels) + 0),
-                    *((pmenu_data->pchannels) + 1));
+            if (pmenu_data->show_addres)
+            {
+                sprintf(s_temp, "             %03d",
+                        *(pmenu_data->dmx_first_chnl));
+            }
+            else
+            {
+                sprintf(s_temp, "                ");
+            }            
         }
             
         LCD_Writel2(s_temp);
@@ -129,7 +177,9 @@ resp_t DMXLcdMenu_ChangeAddress (dmx_menu_address_data_t * data)
     switch (dmx_address_state)
     {
     case DO_NOTHING:
-        if (action == selection_enter)
+        if ((action == selection_enter) ||
+            (action == selection_up) ||
+            (action == selection_dwn))
             dmx_address_state++;
         
         break;
@@ -216,30 +266,6 @@ resp_t DMXLcdMenu_ChangeAddress (dmx_menu_address_data_t * data)
     }
     
     return resp;
-}
-
-
-void Percentage (unsigned char dmx_value, unsigned char * val_int, unsigned char * val_dec)
-{
-    unsigned int calc = 0;
-    
-    if (dmx_value == 0)
-    {
-        *val_int = 0;
-        *val_dec = 0;
-    }
-    else if (dmx_value == 255)
-    {
-        *val_int = 100;
-        *val_dec = 0;
-    }
-    else
-    {
-        calc = dmx_value * 1000;
-        calc = calc / 255;        
-        *val_int = calc / 10;
-        *val_dec = calc - *val_int * 10;
-    }
 }
 
 

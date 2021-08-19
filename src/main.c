@@ -423,6 +423,9 @@ int main(void)
                 CTRL_FAN_OFF;
         }
 #endif    //USE_TEMP_PROT
+#ifdef USE_CTROL_FAN_ALWAYS_ON
+        CTRL_FAN_ON;
+#endif
 
         
         

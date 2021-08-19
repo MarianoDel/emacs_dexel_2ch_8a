@@ -112,7 +112,7 @@ void GPIO_Config (void)
 
     temp = GPIOB->MODER;    //2 bits por pin
     temp &= 0xFFFFC030;    //PB0 analog; PB1 output; PB3 - PB5 input; PB6 output
-    temp |= 0x00002007;
+    temp |= 0x00001007;
     GPIOB->MODER = temp;
 
     temp = GPIOB->OTYPER;	//1 bit por pin
