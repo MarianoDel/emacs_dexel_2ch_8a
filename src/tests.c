@@ -58,7 +58,7 @@ void ColorTemp (unsigned char dmx_value, unsigned short * temp);
 // Module Functions ------------------------------------------------------------
 int main (int argc, char *argv[])
 {
-    // Test_Switch_Select ();
+    Test_Switch_Select ();
     // Test_Dmx_to_Percent ();
     // Test_Dmx_to_Temperature ();
     // printf("quiero un %% en la salida\n");

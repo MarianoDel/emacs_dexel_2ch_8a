@@ -13,7 +13,7 @@
 #include "dmx_lcd_menu.h"
 #include "parameters.h"
 
-#include "hard.h"
+// #include "hard.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -86,6 +86,8 @@ void DMXModeReset (void)
 
 #define timer_address    dmx_mode_enable_menu_timer
 unsigned char dmx_address_show = 0;
+unsigned char last_dmx_ch1 = 0;
+unsigned char last_dmx_ch2 = 0;
 resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
 {
     resp_t resp = resp_continue;
@@ -97,6 +99,9 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
         DMXLcdMenu_ChangeAddressReset();
         dmx_address_show = 1;
         dmx_mode_state++;
+
+        // force the first update
+        last_dmx_ch1 = ~(dmx_buff_data[DMX_CLR_CH1]);
         break;
 
     case DMX_MODE_RUNNING:
@@ -116,13 +121,19 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
                 *(ch_val + 0) = dmx_buff_data[DMX_CLR_CH1];
                 *(ch_val + 1) = dmx_buff_data[DMX_CLR_CH2];
 
-                dmx_end_of_packet_update = 1;
-                resp = resp_change;
+                if ((last_dmx_ch1 != dmx_buff_data[DMX_CLR_CH1]) ||
+                    (last_dmx_ch2 != dmx_buff_data[DMX_CLR_CH2]))
+                {
+                    last_dmx_ch1 = dmx_buff_data[DMX_CLR_CH1];
+                    last_dmx_ch2 = dmx_buff_data[DMX_CLR_CH2];
+                    dmx_end_of_packet_update = 2;    //por lo que demora el update pido dos seguidos
+                    resp = resp_change;
+                }
                 break;
             }
         }
 
-        if (dmx_end_of_packet_update)            
+        if (dmx_end_of_packet_update)
         {
             dmx_menu_data_t dmx_st;
             dmx_st.dmx_first_chnl = &mem_conf.dmx_first_channel;
@@ -137,7 +148,10 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
             resp = DMXLcdMenu(&dmx_st);
 
             if (resp == resp_finish)
-                dmx_end_of_packet_update = 0;
+            {
+                if (dmx_end_of_packet_update)
+                    dmx_end_of_packet_update--;
+            }
             
         }
 
@@ -155,7 +169,8 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
 
     
     //look for a change in address if we are not changing colors
-    if (resp != resp_change)
+    // if (resp != resp_change)
+    if (dmx_end_of_packet_update == 0)        
     {
         dmx_menu_address_data_t dmx_addr_st;
         dmx_addr_st.dmx_address = mem_conf.dmx_first_channel;
@@ -190,6 +205,11 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
     return resp;
             
 }
-            
+
+
+unsigned short DMXGetPacketTimer (void)
+{
+    return dmx_mode_dmx_receiving_timer;
+}
 
 //--- end of file ---//

@@ -38,6 +38,11 @@ gboolean Test_Main_Loop (gpointer user_data)
 
     resp = MENU_Main (&configurations, switch_actions);
     
+    if (resp == resp_need_to_save)
+    {
+        printf("memory needs a save!\n");
+    }
+
     //wraper to clean sw
     g_mutex_lock (&mutex);
 

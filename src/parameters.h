@@ -14,7 +14,8 @@
 typedef enum {
     // program types (modes)
     DMX_MODE = 0,
-    MANUAL_MODE
+    MANUAL_MODE,
+    AUTODETECT_MODE
     
 } programs_type_e;
 

@@ -12,22 +12,24 @@
 #include "menues.h"
 #include "lcd_utils.h"
 #include "temperatures.h"
+#include "adc.h"
 
+#include <stdio.h>
 
 // Module Private Types & Macros -----------------------------------------------
 typedef enum {
     MENU_INIT = 0,
-    MENU_SHOW_MANUAL_OR_DMX,    
-    MENU_SHOW_CHANNEL,
-    MENU_SHOW_MAX_CURRENT,
     MENU_SHOW_OPERATION_MODE,
-    MENU_SHOW_TEMP,    
+    MENU_SHOW_MAX_CURRENT,
+    MENU_SHOW_TEMP,
+    MENU_SHOW_CURRENT_TEMP,    
     MENU_SHOW_END_CONF,
-    MENU_CONF_MANUAL_OR_DMX,
-    MENU_CONF_CHANNEL,
-    MENU_CONF_MAX_CURRENT,
+    
     MENU_CONF_OPERATION_MODE,
-    MENU_CONF_TEMP,    
+    MENU_CONF_MAX_CURRENT,
+    MENU_CONF_TEMP,
+    MENU_CONF_CURRENT_TEMP,
+    MENU_CONF_CURRENT_TEMP_1,        
     MENU_END_CONF
 
 } menu_state_t;
@@ -41,7 +43,7 @@ typedef enum {
 
 
 // Externals -------------------------------------------------------------------
-
+extern volatile unsigned short adc_ch [];
 
 // Globals ---------------------------------------------------------------------
 menu_state_t menu_state = MENU_INIT;
@@ -62,11 +64,13 @@ void MENU_Main_Reset (void)
 
 //funcion de seleccion del menu principal
 //devuelve nueva selección o estado anterior
+unsigned short current_temp = 0;
 resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
 {
     resp_t resp = resp_continue;
     unsigned char onoff = 0;
     unsigned short fchannel = 0;
+    char s_temp[17] = { 0 };    //16 chars per line + '\0'    
 
     switch (menu_state)
     {
@@ -88,72 +92,16 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
         break;
 
         // Options Menues        
-    case MENU_SHOW_MANUAL_OR_DMX:
-        
-        resp = LCD_ShowSelectv2((const char *) "Manual or DMX?  ",
-                                sw_action);
-
-        if (resp == resp_change)
-            menu_state = MENU_SHOW_END_CONF;
-
-        if (resp == resp_change_all_up)
-            menu_state = MENU_SHOW_CHANNEL;
-        
-        if (resp == resp_selected)
-        {
-            LCD_EncoderChangeReset();
-            menu_state = MENU_CONF_MANUAL_OR_DMX;
-        }
-
-        break;
-        
-    case MENU_SHOW_CHANNEL:
-        
-        resp = LCD_ShowSelectv2((const char *) "DMX channel sel ",
-                                sw_action);
-
-        if (resp == resp_change)
-            menu_state = MENU_SHOW_MANUAL_OR_DMX;
-
-        if (resp == resp_change_all_up)
-            menu_state = MENU_SHOW_MAX_CURRENT;
-        
-        if (resp == resp_selected)
-        {
-            LCD_EncoderChangeReset();
-            menu_state = MENU_CONF_CHANNEL;
-        }
-
-        break;
-
-    case MENU_SHOW_MAX_CURRENT:
-        resp = LCD_ShowSelectv2((const char *) "Set max current ",
-                                sw_action);
-
-        if (resp == resp_change)
-            menu_state = MENU_SHOW_CHANNEL;
-
-        if (resp == resp_change_all_up)
-            menu_state = MENU_SHOW_OPERATION_MODE;
-        
-        if (resp == resp_selected)
-        {
-            LCD_EncoderChangeReset();
-            menu_state = MENU_CONF_MAX_CURRENT;
-        }
-
-        break;
-
     case MENU_SHOW_OPERATION_MODE:
         
         resp = LCD_ShowSelectv2((const char *) "Operation mode  ",
                                 sw_action);
 
         if (resp == resp_change)
-            menu_state = MENU_SHOW_MAX_CURRENT;
+            menu_state = MENU_SHOW_END_CONF;
 
         if (resp == resp_change_all_up)
-            menu_state = MENU_SHOW_TEMP;
+            menu_state = MENU_SHOW_MAX_CURRENT;
         
         if (resp == resp_selected)
         {
@@ -163,16 +111,35 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
 
         break;
 
-    case MENU_SHOW_TEMP:
-        
-        resp = LCD_ShowSelectv2((const char *) "Temperature prot",
+    case MENU_SHOW_MAX_CURRENT:
+        resp = LCD_ShowSelectv2((const char *) "Set max current ",
                                 sw_action);
 
         if (resp == resp_change)
             menu_state = MENU_SHOW_OPERATION_MODE;
 
         if (resp == resp_change_all_up)
-            menu_state = MENU_SHOW_END_CONF;
+            menu_state = MENU_SHOW_TEMP;
+        
+        if (resp == resp_selected)
+        {
+            LCD_EncoderChangeReset();
+            menu_state = MENU_CONF_MAX_CURRENT;
+        }
+
+        break;
+
+
+    case MENU_SHOW_TEMP:
+        
+        resp = LCD_ShowSelectv2((const char *) "Temperature prot",
+                                sw_action);
+
+        if (resp == resp_change)
+            menu_state = MENU_SHOW_MAX_CURRENT;
+
+        if (resp == resp_change_all_up)
+            menu_state = MENU_SHOW_CURRENT_TEMP;
         
         if (resp == resp_selected)
         {
@@ -181,17 +148,36 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
         }
 
         break;
-        
-    case MENU_SHOW_END_CONF:
 
-        resp = LCD_ShowSelectv2((const char *) "Save new config ",
+    case MENU_SHOW_CURRENT_TEMP:
+        
+        resp = LCD_ShowSelectv2((const char *) "Current Temp.   ",
                                 sw_action);
 
         if (resp == resp_change)
             menu_state = MENU_SHOW_TEMP;
 
         if (resp == resp_change_all_up)
-            menu_state = MENU_SHOW_MANUAL_OR_DMX;
+            menu_state = MENU_SHOW_END_CONF;
+        
+        if (resp == resp_selected)
+        {
+            current_temp = Temp_Channel;
+            menu_state = MENU_CONF_CURRENT_TEMP;
+        }
+
+        break;
+        
+    case MENU_SHOW_END_CONF:
+
+        resp = LCD_ShowSelectv2((const char *) "Save & Exit     ",
+                                sw_action);
+
+        if (resp == resp_change)
+            menu_state = MENU_SHOW_TEMP;
+
+        if (resp == resp_change_all_up)
+            menu_state = MENU_SHOW_OPERATION_MODE;
 
         if (resp == resp_selected)
         {
@@ -202,44 +188,41 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
         break;
         
         // Configuration Menues
-    case MENU_CONF_MANUAL_OR_DMX:
+    case MENU_CONF_OPERATION_MODE:
 
-        resp = LCD_EncoderShowSelect("Mode:  Manual   ",
-                                     "Mode:  DMX      ",
-                                     sw_action,
-                                     &onoff);
+        resp = LCD_EncoderShowSelect3 ("CCT1 mode       ",
+                                       "CCT2 mode       ",
+                                       "1Ch mode        ",
+                                       sw_action,
+                                       &onoff);
                                      
         if (resp == resp_selected)
         {
-            if (onoff == 2)
-                configurations->program_type = DMX_MODE;
-            else
-                configurations->program_type = MANUAL_MODE;
+            switch (onoff)
+            {
+            case 1:
+                configurations->channels_operation_mode = CCT1_MODE;
+                configurations->dmx_channel_quantity = 2;
+                break;
+            case 2:
+                configurations->channels_operation_mode = CCT2_MODE;
+                configurations->dmx_channel_quantity = 2;                
+                break;
+            case 3:
+                configurations->channels_operation_mode = ONECH_MODE;
+                configurations->dmx_channel_quantity = 1;
+                break;
+            default:
+                configurations->channels_operation_mode = CCT1_MODE;
+                configurations->dmx_channel_quantity = 2;                
+                break;
+            }
 
-            menu_state = MENU_SHOW_MANUAL_OR_DMX;
+            menu_state = MENU_SHOW_OPERATION_MODE;
             resp = resp_continue;
         }
-
+        
         break;
-
-    case MENU_CONF_CHANNEL:
-        fchannel = configurations->dmx_first_channel;
-
-        resp = LCD_EncoderChange("first ch:       ",                                 
-                                 &fchannel,
-                                 1,
-                                 510,
-                                 sw_action);
-
-        if (resp == resp_finish)
-        {
-            configurations->dmx_first_channel = fchannel;
-            menu_state = MENU_SHOW_CHANNEL;
-            resp = resp_continue;
-        }
-
-        break;
-
 
     case MENU_CONF_MAX_CURRENT:
         fchannel = ConvertCurrentFromMemory(configurations);
@@ -257,26 +240,6 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             resp = resp_continue;
         }
 
-        break;
-
-    case MENU_CONF_OPERATION_MODE:
-
-        resp = LCD_EncoderShowSelect("Bright and Temp ",
-                                     "Direct channels ",
-                                     sw_action,
-                                     &onoff);
-                                     
-        if (resp == resp_selected)
-        {
-            if (onoff == 2)
-                configurations->channels_operation_mode = 1;
-            else
-                configurations->channels_operation_mode = 0;
-
-            menu_state = MENU_SHOW_OPERATION_MODE;
-            resp = resp_continue;
-        }
-        
         break;
 
     case MENU_CONF_TEMP:
@@ -298,26 +261,51 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
         }
 
         break;
-        
-        
-        
-    case MENU_END_CONF:
 
-        onoff = 1;
-        resp = LCD_EncoderOptionsOnOff("Save & Exit     ",
-                                       &onoff,
-                                       sw_action);
+    case MENU_CONF_CURRENT_TEMP:
+        sprintf(s_temp, "temp: %dC       ", Temp_TempToDegreesExtended(current_temp));
+
+        resp = LCD_ShowBlink (s_temp,
+                              "                ",
+                              1,
+                              BLINK_NO);
 
         if (resp == resp_finish)
         {
-            if (onoff)
-                resp = resp_need_to_save;
-            else
-                resp = resp_finish;
-
-            menu_state = MENU_INIT;
+            current_temp = Temp_Channel;
+            resp = resp_continue;
         }
         
+        if (sw_action == selection_enter)
+        {
+            menu_state = MENU_CONF_CURRENT_TEMP_1;
+            resp = resp_continue;
+        }
+        break;
+
+    case MENU_CONF_CURRENT_TEMP_1:
+        if (sw_action == selection_none)
+        {
+            menu_state = MENU_SHOW_CURRENT_TEMP;
+            resp = resp_continue;
+        }
+        break;
+        
+    case MENU_END_CONF:
+        resp = LCD_ShowBlink ("   Saving new   ",
+                              "    params...   ",
+                              1,
+                              BLINK_DIRECT);
+
+        if (resp == resp_finish)
+        {
+            resp = resp_continue;
+            if (sw_action == selection_none)
+            {
+                resp = resp_need_to_save;
+                menu_state = MENU_INIT;
+            }
+        }
         break;
         
     default:

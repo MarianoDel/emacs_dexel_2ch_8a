@@ -42,6 +42,8 @@ typedef enum {
     MAIN_INIT,
     MAIN_HARD_INIT,
     MAIN_CHECK_CONF,
+    MAIN_DMX_MODE_INIT,
+    MAIN_MANUAL_MODE_INIT,
     MAIN_IN_DMX_MODE,
     MAIN_IN_MANUAL_MODE,
     MAIN_IN_OVERTEMP,
@@ -187,6 +189,7 @@ int main(void)
     resp_t resp = resp_continue;
     unsigned char ch_values [2] = { 0 };
     main_state_e main_state = MAIN_INIT;
+    unsigned char packet_cnt = 0;
     
     while (1)
     {
@@ -206,11 +209,11 @@ int main(void)
                 mem_conf.max_current_channels[0] = 255;
                 mem_conf.max_current_channels[1] = 255;
                 mem_conf.current_eight_amps = 0;
-                mem_conf.channels_operation_mode = 0;
+                mem_conf.channels_operation_mode = CCT1_MODE;
 
                 mem_conf.dmx_first_channel = 1;
                 mem_conf.dmx_channel_quantity = 2;                
-                mem_conf.program_type = DMX_MODE;
+                // mem_conf.program_type = DMX_MODE;
             }
 
             main_state++;
@@ -233,52 +236,77 @@ int main(void)
             else
                 I_SEL_OFF;
 
-            main_state++;            
+            // packet reception enable
+            DMX_EnableRx();
+            timer_standby = 1000;    //one second for dmx detection
+            mem_conf.program_type = AUTODETECT_MODE;
+
+            main_state++;
             break;
 
         case MAIN_CHECK_CONF:
-
-            if (mem_conf.program_type == DMX_MODE)
+            if (Packet_Detected_Flag)
             {
-                // reception variables
-                DMX_channel_selected = mem_conf.dmx_first_channel;
-                DMX_channel_quantity = mem_conf.dmx_channel_quantity;
-
-                // Force first screen
-                Packet_Detected_Flag = 1;
-                dmx_buff_data[0] = 0;
-                dmx_buff_data[1] = 0;
-                dmx_buff_data[2] = 0;
-
-                // Mode Timeout enable
-                ptFTT = &DMXMode_UpdateTimers;
-
-                // packet reception enable
-                DMX_EnableRx();
-
-                // habilito salidas si estoy con int
-                enable_outputs_by_int = 1;
-                
-                DMXModeReset();
-                main_state = MAIN_IN_DMX_MODE;
+                Packet_Detected_Flag = 0;
+                packet_cnt++;
             }
 
-            if (mem_conf.program_type == MANUAL_MODE)
+            if ((packet_cnt > 5) &&
+                (timer_standby))
             {
-                // habilito salidas si estoy con int
-                enable_outputs_by_int = 1;
-
-                // Mode Timeout enable
-                ptFTT = &ManualMode_UpdateTimers;
-
-                for (unsigned char n = 0; n < sizeof(ch_values); n++)
-                    ch_values[n] = mem_conf.fixed_channels[n];
-                
-                ManualModeReset();                
-                main_state = MAIN_IN_MANUAL_MODE;
+                mem_conf.program_type = DMX_MODE;
+                main_state = MAIN_DMX_MODE_INIT;
+            }
+            else if (!timer_standby)
+            {
+                mem_conf.program_type = MANUAL_MODE;
+                main_state = MAIN_MANUAL_MODE_INIT;
             }
             break;
 
+        case MAIN_DMX_MODE_INIT:
+            // reception variables
+            DMX_channel_selected = mem_conf.dmx_first_channel;
+            DMX_channel_quantity = mem_conf.dmx_channel_quantity;
+
+            // Force first screen
+            Packet_Detected_Flag = 1;
+            dmx_buff_data[0] = 0;
+            dmx_buff_data[1] = 0;
+            dmx_buff_data[2] = 0;
+
+            // Mode Timeout enable
+            ptFTT = &DMXMode_UpdateTimers;
+
+            // packet reception enable
+            // DMX_EnableRx();
+
+            // habilito salidas si estoy con int
+            enable_outputs_by_int = 1;
+                
+            DMXModeReset();
+            main_state = MAIN_IN_DMX_MODE;
+            packet_cnt = 0;    // reset packet counter for autodetection
+            break;
+
+        case MAIN_MANUAL_MODE_INIT:
+            // habilito salidas si estoy con int
+            enable_outputs_by_int = 1;
+
+            // Mode Timeout enable
+            ptFTT = &ManualMode_UpdateTimers;
+
+            for (unsigned char n = 0; n < sizeof(ch_values); n++)
+            {
+                ch_values[n] = mem_conf.fixed_channels[n];
+                channels_values_int[n] = ch_values[n];    // set the first values
+            }
+                
+            ManualModeReset();                
+            main_state = MAIN_IN_MANUAL_MODE;
+            packet_cnt = 0;    // reset packet counter for autodetection
+            break;
+            
         case MAIN_IN_DMX_MODE:
             // Check encoder first
             action = CheckActions();
@@ -302,7 +330,25 @@ int main(void)
             }
             else
                 main_state = MAIN_ENTERING_MAIN_MENU;
-            
+
+            // Manual mode autodetection
+            if (DMXGetPacketTimer () == 0)
+            {
+                if (!timer_standby)
+                {
+                    if (packet_cnt < 2)
+                    {
+                        packet_cnt++;
+                        timer_standby = 200;
+                    }
+                    else
+                    {
+                        // manual detection
+                        main_state = MAIN_MANUAL_MODE_INIT;
+                        mem_conf.program_type = MANUAL_MODE;
+                    }
+                }
+            }
             break;
 
         case MAIN_IN_MANUAL_MODE:
@@ -331,6 +377,28 @@ int main(void)
             else
                 main_state = MAIN_ENTERING_MAIN_MENU;
 
+            // Dmx presence autodetection
+            if (Packet_Detected_Flag)
+            {
+                Packet_Detected_Flag = 0;
+                packet_cnt++;
+                timer_standby = 1000;
+            }
+
+            if (packet_cnt > 5)
+            {
+                if (timer_standby)
+                {
+                    // dmx detection
+                    main_state = MAIN_DMX_MODE_INIT;
+                    mem_conf.program_type = DMX_MODE;                    
+                }
+                else
+                {
+                    // dmx not present, reset the counter
+                    packet_cnt = 0;
+                }
+            }
             break;
 
         case MAIN_IN_OVERTEMP:
@@ -468,7 +536,8 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
     switch (filters_sm)
     {
     case FILTERS_BKP_CHANNELS:
-        if (mem_conf.channels_operation_mode == 0)
+        if ((mem_conf.channels_operation_mode == CCT1_MODE) ||
+            (mem_conf.channels_operation_mode == CCT2_MODE))
         {
             unsigned char bright = 0;
             unsigned char temp0 = 0;
@@ -497,19 +566,14 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             limit_output[1] = (unsigned short) calc;
         }
 
-        if (mem_conf.channels_operation_mode == 1)
+        if (mem_conf.channels_operation_mode == ONECH_MODE)
         {
             calc = *(ch_dmx_val + 0);
             // calc <<= 4;    //4000 pts
             // calc <<= 5;    //8000 pts
             calc <<= 6;    //16000 pts        
             limit_output[0] = (unsigned short) calc;
-
-            calc = *(ch_dmx_val + 1);
-            // calc <<= 4;    //4000 pts
-            // calc <<= 5;    //8000 pts
-            calc <<= 6;    //16000 pts        
-            limit_output[1] = (unsigned short) calc;
+            limit_output[1] = limit_output[0];
         }
 
         filters_sm++;

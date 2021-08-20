@@ -14,9 +14,6 @@
 #include "lcd_utils.h"
 #include "dmx_utils.h"
 
-#include "temperatures.h"
-#include "adc.h"
-
 
 #include <stdio.h>
 #include <string.h>
@@ -32,12 +29,9 @@ typedef enum {
 
 
 // Externals -------------------------------------------------------------------
-extern volatile unsigned short adc_ch [];
+
 
 // Globals ---------------------------------------------------------------------
-
-
-
 static dmx_menu_e dmx_menu_state = DMX_MENU_INIT;
 
 
@@ -177,8 +171,7 @@ resp_t DMXLcdMenu_ChangeAddress (dmx_menu_address_data_t * data)
     switch (dmx_address_state)
     {
     case DO_NOTHING:
-        if ((action == selection_enter) ||
-            (action == selection_up) ||
+        if ((action == selection_up) ||
             (action == selection_dwn))
             dmx_address_state++;
         

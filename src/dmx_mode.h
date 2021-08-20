@@ -24,7 +24,7 @@
 resp_t DMXMode (unsigned char *, sw_actions_t);
 void DMXModeReset (void);
 void DMXMode_UpdateTimers (void);
-
+unsigned short DMXGetPacketTimer (void);
 
 #endif    /* _DMX_MODE_H_ */
 

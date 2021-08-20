@@ -183,6 +183,12 @@ void LCD_EncoderChangeReset (void);
 
 void LCD_EncoderShowSelectReset (void);
 resp_t LCD_EncoderShowSelect (const char *, const char *, sw_actions_t, unsigned char *);
+resp_t LCD_EncoderShowSelect3 (const char * p_text1,
+                               const char * p_text2,
+                               const char * p_text3,
+                               sw_actions_t sw_action,
+                               unsigned char * selected_line);
+
 
 void LCD_BigNumbersInit (void);
 void LCD_BigNumbers (unsigned char, unsigned char);

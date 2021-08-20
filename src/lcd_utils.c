@@ -928,6 +928,7 @@ typedef enum {
     
     ENCODER_SELECT_LINE1 = 0,
     ENCODER_SELECT_LINE2,
+    ENCODER_SELECT_LINE3,
     ENCODER_SELECT_SELECTED,
     ENCODER_SELECT_SELECTED_1
     
@@ -940,8 +941,6 @@ void LCD_EncoderShowSelectReset (void)
 }
 
 //funcion que permite seleccionar entre 2 opciones
-//primer string siempre permanente
-//segundo, primera opcion
 // respuesta del argumento 1 o 2 segun el renglon
 //respuestas
 //resp_continue
@@ -984,6 +983,95 @@ resp_t LCD_EncoderShowSelect (const char * p_text1,
         }
         break;
 
+    case ENCODER_SELECT_SELECTED:
+        LCD_2DO_RENGLON;
+        Lcd_TransmitStr((const char *) "Selected...     ");
+        // Lcd_TransmitStr((const char *) "Seleccionado... ");
+        encoder_select_state++;
+        break;
+        
+    case ENCODER_SELECT_SELECTED_1:
+        if (sw_action == selection_none)
+        {
+            resp = resp_selected;
+            encoder_select_state = ENCODER_SELECT_LINE1;
+            *selected_line = encoder_line_selected;
+        }
+        break;
+
+    default:
+        encoder_select_state = ENCODER_SELECT_LINE1;
+        break;
+    }
+
+    return resp;
+}
+
+
+// Same as before but for three options
+// answer 1, 2, 3 if resp_selected
+// resp_continue
+resp_t LCD_EncoderShowSelect3 (const char * p_text1,
+                               const char * p_text2,
+                               const char * p_text3,
+                               sw_actions_t sw_action,
+                               unsigned char * selected_line)
+{
+    resp_t resp = resp_continue;
+
+    switch (encoder_select_state)
+    {
+    case ENCODER_SELECT_LINE1:
+        resp = LCD_ShowSelectv2(p_text1, sw_action);
+
+        if (resp == resp_change_all_up)
+            encoder_select_state = ENCODER_SELECT_LINE2;
+
+        if (resp == resp_change)
+            encoder_select_state = ENCODER_SELECT_LINE3;
+
+        if (resp == resp_selected)
+        {
+            encoder_line_selected = 1;
+            resp = resp_continue;
+            encoder_select_state = ENCODER_SELECT_SELECTED;
+        }
+        break;
+
+    case ENCODER_SELECT_LINE2:
+        resp = LCD_ShowSelectv2(p_text2, sw_action);
+
+        if (resp == resp_change_all_up)
+            encoder_select_state = ENCODER_SELECT_LINE3;
+
+        if (resp == resp_change)
+            encoder_select_state = ENCODER_SELECT_LINE1;
+
+        if (resp == resp_selected)
+        {
+            encoder_line_selected = 2;
+            resp = resp_continue;
+            encoder_select_state = ENCODER_SELECT_SELECTED;
+        }
+        break;
+
+    case ENCODER_SELECT_LINE3:
+        resp = LCD_ShowSelectv2(p_text3, sw_action);
+
+        if (resp == resp_change_all_up)
+            encoder_select_state = ENCODER_SELECT_LINE1;
+
+        if (resp == resp_change)
+            encoder_select_state = ENCODER_SELECT_LINE2;
+
+        if (resp == resp_selected)
+        {
+            encoder_line_selected = 3;
+            resp = resp_continue;
+            encoder_select_state = ENCODER_SELECT_SELECTED;
+        }
+        break;
+        
     case ENCODER_SELECT_SELECTED:
         LCD_2DO_RENGLON;
         Lcd_TransmitStr((const char *) "Selected...     ");
