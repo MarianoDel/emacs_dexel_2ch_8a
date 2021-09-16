@@ -94,4 +94,62 @@ unsigned short PWM_Map_From_Dmx (unsigned char dmx_val)
 //     }
 // }
 
+
+// get dmx_data from 0 to 255
+// answer pwm_ena 0 to 4096
+// answer pwm_ch 0 to 4096
+void PWM_Map_Pre_Filter (unsigned char dmx_data, unsigned short * pwm_ena, unsigned short * pwm_ch)
+{
+    unsigned char dmx_ena = 0;
+    unsigned short dmx_ch = 0;
+    
+    if (dmx_data > 4)
+    {
+        dmx_ena = 4;
+        dmx_ch = dmx_data - 4;
+    }
+    else
+    {
+        dmx_ena = dmx_data;
+        dmx_ch = 0;
+    }
+
+    // *pwm_ena = dmx_ena * 1024;
+    *pwm_ena = dmx_ena << 10;
+    
+    dmx_ch = dmx_ch * 164;
+    dmx_ch = dmx_ch / 10;
+    *pwm_ch = dmx_ch;
+    
+}
+
+
+// get dmx_filtered from 0 to 4095
+// answer pwm_ena 0 to 4096
+// answer pwm_ch 0 to 4096
+void PWM_Map_Post_Filter (unsigned short dmx_filtered, unsigned short * pwm_ena, unsigned short * pwm_ch)
+{
+    unsigned short dmx_ena = 0;
+    unsigned int dmx_ch = 0;
+    
+    if (dmx_filtered > 64)
+    {
+        dmx_ena = 64;
+        dmx_ch = dmx_filtered - 64;
+    }
+    else
+    {
+        dmx_ena = dmx_filtered;
+        dmx_ch = 0;
+    }
+
+    // *pwm_ena = dmx_ena * 64;
+    *pwm_ena = dmx_ena << 6;
+    
+    dmx_ch = dmx_ch * 1016;
+    dmx_ch = dmx_ch / 1000;
+    *pwm_ch = (unsigned short) dmx_ch;
+    
+}
+
 //--- end of file ---//

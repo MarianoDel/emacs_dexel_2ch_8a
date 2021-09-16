@@ -45,7 +45,8 @@
 void PWMChannelsReset (void);
 unsigned short PWM_Map_From_Dmx (unsigned char);
 // void PWM_Set_PwrCtrl (unsigned char *, unsigned char, unsigned short);
-
+void PWM_Map_Pre_Filter (unsigned char dmx_data, unsigned short * pwm_ena, unsigned short * pwm_ch);
+void PWM_Map_Post_Filter (unsigned short dmx_filtered, unsigned short * pwm_ena, unsigned short * pwm_ch);
 
 
 #endif    /* __PWM_H_ */
