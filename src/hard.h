@@ -195,6 +195,7 @@
 #define SWITCHES_THRESHOLD_FULL	1000    //5 segundos
 #define SWITCHES_THRESHOLD_HALF	50    //250 ms
 #define SWITCHES_THRESHOLD_MIN	10    //50 ms
+#define SWITCHES_THRESHOLD_MIN_FAST    2    //10 ms
 
 
 #define CH1_VAL_OFFSET    0

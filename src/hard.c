@@ -40,18 +40,27 @@ void HARD_Timeouts (void)
 unsigned short sw_up_cntr = 0;
 unsigned short sw_dwn_cntr = 0;
 unsigned short sw_sel_cntr = 0;
+unsigned char sw_up_cont_cntr = 0;
+unsigned char sw_dwn_cont_cntr = 0;
 resp_sw_t Check_SW_UP (void)
 {
     resp_sw_t sw = SW_NO;
-    
-    if (sw_up_cntr > SWITCHES_THRESHOLD_FULL)
-        sw = SW_FULL;
-    else if (sw_up_cntr > SWITCHES_THRESHOLD_HALF)
-        sw = SW_HALF;
+
+    if (sw_up_cont_cntr >= 5)
+    {
+        sw_up_cont_cntr = 5;
+
+        if (sw_up_cntr > SWITCHES_THRESHOLD_MIN_FAST)
+        {
+            sw_up_cntr -= SWITCHES_THRESHOLD_MIN_FAST;
+            sw = SW_MIN;
+        }
+    }
     else if (sw_up_cntr > SWITCHES_THRESHOLD_MIN)
     {
         sw_up_cntr -= SWITCHES_THRESHOLD_MIN;
         sw = SW_MIN;
+        sw_up_cont_cntr++;
     }
 
     return sw;    
@@ -61,15 +70,22 @@ resp_sw_t Check_SW_UP (void)
 resp_sw_t Check_SW_DWN (void)
 {
     resp_sw_t sw = SW_NO;
-    
-    if (sw_dwn_cntr > SWITCHES_THRESHOLD_FULL)
-        sw = SW_FULL;
-    else if (sw_dwn_cntr > SWITCHES_THRESHOLD_HALF)
-        sw = SW_HALF;
+
+    if (sw_dwn_cont_cntr >= 5)
+    {
+        sw_dwn_cont_cntr = 5;
+
+        if (sw_dwn_cntr > SWITCHES_THRESHOLD_MIN_FAST)
+        {
+            sw_dwn_cntr -= SWITCHES_THRESHOLD_MIN_FAST;
+            sw = SW_MIN;
+        }
+    }
     else if (sw_dwn_cntr > SWITCHES_THRESHOLD_MIN)
     {
         sw_dwn_cntr -= SWITCHES_THRESHOLD_MIN;
         sw = SW_MIN;
+        sw_dwn_cont_cntr++;
     }
 
     return sw;    
@@ -94,48 +110,6 @@ resp_sw_t Check_SW_SEL (void)
 }
 
 
-// #define SWITCHES_PULSES_FULL    60    //3 segs
-// #define SWITCHES_PULSES_HALF    20    //1 seg
-// unsigned char sw_sel_pulses_cntr = 0;
-// resp_sw_t Check_SW_SEL (void)
-// {
-//     resp_sw_t sw = SW_NO;
-//     unsigned char current_pulses = 0;
-
-//     // check how many pulses on counter or reset pulses counter
-//     if (sw_sel_cntr)
-//     {
-//         for (unsigned char i = 0; i < SWITCHES_PULSES_FULL; i++)
-//         {
-//             if (sw_sel_cntr > (SWITCHES_THRESHOLD_MIN * i))
-//                 current_pulses++;
-//             else
-//                 i = SWITCHES_PULSES_FULL;
-//         }
-
-//         if (current_pulses > (sw_sel_pulses_cntr + 1))
-//         {
-//             sw_sel_pulses_cntr++;
-
-//             if (sw_sel_pulses_cntr > SWITCHES_PULSES_FULL)
-//                 sw = SW_FULL;
-//             else if (sw_sel_pulses_cntr > SWITCHES_PULSES_HALF)
-//                 sw = SW_HALF;
-//             else
-//                 sw = SW_MIN;
-//         }
-//     }
-//     else
-//     {
-//         sw_sel_pulses_cntr = 0;
-//     }
-    
-//     return sw;    
-// }
-
-
-
-
 void UpdateSwitches (void)
 {
     if (!switches_timer)
@@ -148,6 +122,8 @@ void UpdateSwitches (void)
             sw_up_cntr -= 5;
         else if (sw_up_cntr)
             sw_up_cntr--;
+        else
+            sw_up_cont_cntr = 0;
 
         if (SW_DWN)
             sw_dwn_cntr++;
@@ -157,6 +133,8 @@ void UpdateSwitches (void)
             sw_dwn_cntr -= 5;
         else if (sw_dwn_cntr)
             sw_dwn_cntr--;
+        else
+            sw_dwn_cont_cntr = 0;
 
         if (SW_SEL)
             sw_sel_cntr++;
