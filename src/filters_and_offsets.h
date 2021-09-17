@@ -20,6 +20,7 @@
 void FiltersAndOffsets_Pre_Mapping_SM (volatile unsigned char * ch_dmx_val);
 void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val);
 
+
 #endif    /* _FILTERS_AND_OFFSETS_H_ */
 
 //--- end of file ---//
