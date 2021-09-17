@@ -17,8 +17,10 @@
 
 
 // Module Exported Functions ---------------------------------------------------
+void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val);
 void FiltersAndOffsets_Pre_Mapping_SM (volatile unsigned char * ch_dmx_val);
 void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val);
+void FiltersAndOffsets_Filters_Reset (void);
 
 
 #endif    /* _FILTERS_AND_OFFSETS_H_ */

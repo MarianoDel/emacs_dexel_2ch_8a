@@ -92,6 +92,7 @@ SRC += ./src/manual_mode.c
 SRC += ./src/dmx_lcd_menu.c
 SRC += ./src/temperatures.c
 SRC += ./src/dmx_utils.c
+SRC += ./src/filters_and_offsets.c
 
 
 

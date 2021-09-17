@@ -362,8 +362,8 @@ void Test_Dmx_Post_Ramp_Ch1 (void)
     ShowVectorUShort("\nVector dmx data ch1:\n", dmx_data_ch1, 100);
     ShowVectorUShort("\nVector dmx data ch2:\n", dmx_data_ch2, 100);    
     ShowVectorUShort("\nVector ena outp ch1:\n", ena_output_ch1, 100);
-    ShowVectorUShort("\nVector pwm outp ch2:\n", pwm_output_ch1, 100);    
-    ShowVectorUShort("\nVector ena outp ch1:\n", ena_output_ch2, 100);
+    ShowVectorUShort("\nVector pwm outp ch1:\n", pwm_output_ch1, 100);    
+    ShowVectorUShort("\nVector ena outp ch2:\n", ena_output_ch2, 100);
     ShowVectorUShort("\nVector pwm outp ch2:\n", pwm_output_ch2, 100);    
 
     ///////////////////////////

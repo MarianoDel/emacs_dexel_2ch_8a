@@ -13,6 +13,7 @@
 #include "dsp.h"
 #include "parameters.h"
 #include "pwm.h"
+#include "tim.h"
 
 
 // Externals -------------------------------------------------------------------
@@ -45,10 +46,10 @@ typedef enum {
 } filters_and_offsets_e;
 
 
-// #define CHNL_ENA_DOWN    0
-// #define CHNL_ENA_POWERDWN    1
-// #define CHNL_ENA_POWERUP    2
-// #define CHNL_ENA_UP    3
+#define CHNL_ENA_DOWN    0
+#define CHNL_ENA_POWERDWN    1
+#define CHNL_ENA_POWERUP    2
+#define CHNL_ENA_UP    3
 
 unsigned char ch1_enable_state = 0;
 unsigned char ch2_enable_state = 0;
@@ -63,6 +64,7 @@ unsigned short ena_output [2] = { 0 };
 void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 {
     unsigned int calc = 0;
+    unsigned short ch1_pwm, ch2_pwm;
     
     switch (filters_sm)
     {
@@ -124,22 +126,6 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
         break;
 
     case FILTERS_OUTPUTS:
-#ifdef USE_FILTER_LENGHT_16
-        // channel 1
-        ch1_pwm = MA16_U16Circular (
-            &st_sp1,
-            PWM_Map_From_Dmx(*(limit_output + CH1_VAL_OFFSET))
-            );
-        PWM_Update_CH1(ch1_pwm);
-
-        // channel 2
-        ch2_pwm = MA16_U16Circular (
-            &st_sp2,
-            PWM_Map_From_Dmx(*(limit_output + CH2_VAL_OFFSET))
-            );
-        PWM_Update_CH2(ch2_pwm);
-#endif
-#ifdef USE_FILTER_LENGHT_32
         // channel 1
         ch1_pwm = MA32_U16Circular (&st_sp1, *(limit_output + CH1_VAL_OFFSET));
         if (ch1_enable_state != CHNL_ENA_POWERDWN)
@@ -151,7 +137,6 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             PWM_Update_CH2(ch2_pwm);
 
         // check for led shutdown
-#ifdef HARDWARE_VERSION_1_1
         if ((!ch1_pwm) && (ch1_enable_state == CHNL_ENA_UP))
         {
             ch1_enable_state = CHNL_ENA_POWERDWN;
@@ -171,45 +156,11 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
         {
             ch2_enable_state = CHNL_ENA_POWERUP;
         }
-        
-#endif
-        
-#endif    //USE_FILTER_LENGHT_32
-#ifdef USE_NO_FILTER
-        // channel 1
-        if (*(limit_output + CH1_VAL_OFFSET) > ch1_pwm)
-        {
-            unsigned short setpoint_ch1 = *(limit_output + CH1_VAL_OFFSET);
-            ch1_pwm = OutputDeltaPos (setpoint_ch1, ch1_pwm);
-        }
-        else if (*(limit_output + CH1_VAL_OFFSET) < ch1_pwm)
-        {
-            unsigned short setpoint_ch1 = *(limit_output + CH1_VAL_OFFSET);
-            ch1_pwm = OutputDeltaNeg (setpoint_ch1, ch1_pwm);
-        }
-            
-        PWM_Update_CH1(ch1_pwm);
-
-        // channel 2
-        if (*(limit_output + CH2_VAL_OFFSET) > ch2_pwm)
-        {
-            unsigned short setpoint_ch2 = *(limit_output + CH2_VAL_OFFSET);
-            ch2_pwm = OutputDeltaPos (setpoint_ch2, ch2_pwm);
-        }
-        else if (*(limit_output + CH2_VAL_OFFSET) < ch2_pwm)
-        {
-            unsigned short setpoint_ch2 = *(limit_output + CH2_VAL_OFFSET);
-            ch2_pwm = OutputDeltaNeg (setpoint_ch2, ch2_pwm);
-        }
-
-        PWM_Update_CH2(ch2_pwm);        
-#endif
 
         filters_sm++;
         break;
         
     case FILTERS_DUMMY1:
-#ifdef HARDWARE_VERSION_1_1
         // UP sequence
         if (ch1_enable_state == CHNL_ENA_POWERUP)
         {
@@ -257,10 +208,6 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             else
                 ch2_enable_state = CHNL_ENA_DOWN;
         }
-        
-
-#endif
-
         
         filters_sm++;
         break;
@@ -462,6 +409,15 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
         filters_sm = FILTERS_BKP_CHANNELS;
         break;
     }
+}
+
+
+void FiltersAndOffsets_Filters_Reset (void)
+{
+    MA32_U16Circular_Reset(&st_sp1);
+    MA32_U16Circular_Reset(&st_sp2);
+    MA32_U16Circular_Reset(&st_ena1);
+    MA32_U16Circular_Reset(&st_ena2);
 }
 
 

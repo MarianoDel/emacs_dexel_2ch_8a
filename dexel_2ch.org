@@ -74,3 +74,33 @@
 *** Temperatura de FAN
 *** Temperatura actual
 *** Maxima corriente por canal
+
+* Cambios de modulos
+## antes de cambiar filters offsets
+arm-none-eabi-size Template_F030_rom.elf
+   text	   data	    bss	    dec	    hex	filename
+  21136	    104	   1304	  22544	   5810	Template_F030_rom.elf
+
+
+## cambio a filters_and_offsets con filter length 32
+arm-none-eabi-size Template_F030_rom.elf
+   text	   data	    bss	    dec	    hex	filename
+  21132	    104	   1300	  22536	   5808	Template_F030_rom.elf
+
+
+## cambio a filters_and_offsets sin filter length 32
+arm-none-eabi-size Template_F030_rom.elf
+   text	   data	    bss	    dec	    hex	filename
+  21032	    104	   1444	  22580	   5834	Template_F030_rom.elf
+
+## cambio completo sin filter length 32 funcion original
+arm-none-eabi-size Template_F030_rom.elf
+   text	   data	    bss	    dec	    hex	filename
+  21156	    104	   1444	  22704	   58b0	Template_F030_rom.elf
+
+## cambio completo funcion post filter
+arm-none-eabi-size Template_F030_rom.elf
+   text	   data	    bss	    dec	    hex	filename
+  21036	    104	   1440	  22580	   5834	Template_F030_rom.elf
+
+
