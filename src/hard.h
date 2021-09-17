@@ -26,7 +26,8 @@
 //---- Features Configuration -----------------
 #define USE_TEMP_PROT
 // #define USE_CTROL_FAN_ALWAYS_ON
-#define USE_F_CHNLS_FOR_ENABLE
+// #define USE_F_CHNLS_FOR_ENABLE        //this one or the later
+#define USE_F_CHNLS_FOR_FREQ_DETECT    //this one or the former
 
 // -- Freq for the timers
 #define USE_PWM_16000_FREQ_1KHZ

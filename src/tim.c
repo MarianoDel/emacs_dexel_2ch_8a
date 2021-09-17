@@ -47,6 +47,8 @@ extern volatile unsigned short wait_ms_var;
 
 
 // Globals ---------------------------------------------------------------------
+volatile unsigned char f_channel_2_int = 0;
+volatile unsigned char f_channel_4_int = 0;
 
 
 // Module Functions ------------------------------------------------------------
@@ -107,6 +109,32 @@ void TIM_1_Init (void)
     if (!RCC_TIM1_CLK)
         RCC_TIM1_CLK_ON;
 
+#ifdef USE_F_CHNLS_FOR_FREQ_DETECT
+    //Configuracion del timer.
+    TIM1->CR1 = 0x00;		//clk int / 1; upcounting
+    // TIM1->CR2 |= TIM_CR2_MMS_1;		//UEV -> TRG0
+
+    TIM1->SMCR = 0x0000;
+    TIM1->CCMR1 = 0x2100;    //CH2 input filtered N=4 map IC2->TI2
+    TIM1->CCMR2 = 0x2100;    //CH4 input filtered N=4 map IC4->TI4
+    
+    TIM1->CCER |= TIM_CCER_CC4E | TIM_CCER_CC2E;    //CH4 & CH2 capture enable rising edge
+
+    TIM1->ARR = 0xFFFF;
+    TIM1->CNT = 0;
+
+    TIM1->PSC = 47;
+
+    // Enable timer interrupt see UDIS
+    TIM1->DIER |= TIM_DIER_CC4IE | TIM_DIER_CC2IE;    // int on CC4 CC2 & overflow
+    // NVIC_EnableIRQ(TIM1_BRK_UP_TRG_COM_IRQn);
+    // NVIC_SetPriority(TIM1_BRK_UP_TRG_COM_IRQn, 1);
+    NVIC_EnableIRQ(TIM1_CC_IRQn);
+    NVIC_SetPriority(TIM1_CC_IRQn, 8);
+    
+#endif
+
+#ifdef USE_F_CHNLS_FOR_ENABLE
     //Configuracion del timer.
     TIM1->CR1 = 0x00;		//clk int / 1; upcounting
     // TIM1->CR2 |= TIM_CR2_MMS_1;		//UEV -> TRG0
@@ -115,7 +143,7 @@ void TIM_1_Init (void)
     TIM1->CCMR1 = 0x6000;    //CH2 output PWM mode 1 (channel active TIM1->CNT < TIM1->CCR1)
     TIM1->CCMR2 = 0x6000;    //CH4 output PWM mode 1 (channel active TIM1->CNT < TIM1->CCR1)
     
-    TIM1->CCER |= TIM_CCER_CC4E | TIM_CCER_CC2E;    //CH4 y CH2 enable on pin direct polarity
+    TIM1->CCER |= TIM_CCER_CC4E | TIM_CCER_CC2E;    //CH4 & CH2 enable on pin direct polarity
 
     TIM1->BDTR |= TIM_BDTR_MOE;
     
@@ -123,20 +151,36 @@ void TIM_1_Init (void)
     TIM1->CNT = 0;
 
     TIM1->PSC = 47;
-
+#endif
+    
     //Alternate Fuction Pin Configurations
     temp = GPIOA->AFR[1];
     temp &= 0xFFFF0F0F;    
     temp |= 0x00002020;    //PA11 -> AF2; PA9 -> AF2
     GPIOA->AFR[1] = temp;
-
-    // Enable timer interrupt ver UDIS
-    // TIM1->DIER |= TIM_DIER_UIE;
-    // NVIC_EnableIRQ(TIM1_BRK_UP_TRG_COM_IRQn);
-    // NVIC_SetPriority(TIM1_BRK_UP_TRG_COM_IRQn, 1);
     
     TIM1->CR1 |= TIM_CR1_CEN;
 }
+
+
+#ifdef USE_F_CHNLS_FOR_FREQ_DETECT
+void TIM1_CC_IRQHandler (void)
+{
+    // IC2 int
+    if (TIM1->SR & (TIM_SR_CC2IF | TIM_SR_CC2OF))	//reset flag capture and overcapture
+    {
+        f_channel_2_int = 1;
+        TIM1->SR &= ~(TIM_SR_CC2IF | TIM_SR_CC2OF);
+    }
+
+    // IC4 int
+    else if (TIM1->SR & (TIM_SR_CC4IF | TIM_SR_CC4OF))	//reset flag capture and overcapture
+    {
+        f_channel_4_int = 1;
+        TIM1->SR &= ~(TIM_SR_CC4IF | TIM_SR_CC4OF);
+    }
+}
+#endif
 
 
 void TIM_3_Init (void)

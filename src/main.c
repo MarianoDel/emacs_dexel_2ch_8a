@@ -126,6 +126,7 @@ int main(void)
     // TF_Dmx_Packet_Data ();
     // TF_Pwm_Channels ();
     // TF_F_Channels_As_Pwm ();
+    TF_F_Channels_As_ICapture ();    
     // TF_Temp_Channel ();    
     // End Hard Tests -------------------------------
 
@@ -138,10 +139,12 @@ int main(void)
     
     // Timer for PWM on ENAs
     TIM_1_Init ();
+#ifndef USE_F_CHNLS_FOR_FREQ_DETECT
     PWM_Update_ENA1 (0);
     PWM_Update_ENA2 (0);
     EnablePreload_ENA1;
     EnablePreload_ENA2;
+#endif
     
     // Usart and Timer for DMX
     Usart1Config ();
