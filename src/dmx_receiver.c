@@ -13,6 +13,7 @@
 #include "tim.h"
 
 
+#define USE_LED_FOR_BREAK_DETECT
 // Internal Configs ------------------------------------------------------------
 // TIM used for break detect
 #define TIM_BREAK    TIM14
@@ -20,6 +21,12 @@
 #define GPIO_BREAK    DMX_INPUT
 // USART for DMX rx data
 #define USART_RX    USART1
+// LED for break detect
+#ifdef USE_LED_FOR_BREAK_DETECT
+#define LED_BREAK    LED
+#define LED_BREAK_OFF    LED_OFF
+#define LED_BREAK_ON    LED_ON
+#endif
 
 
 #define SIZEOF_DMX_DATA512       512
@@ -103,6 +110,9 @@ void DMX_Int_Serial_Receiver_Handler (unsigned char dummy)
                 current_channel_index = 0;
                 dmx_receive_flag = 0;
                 Packet_Detected_Flag = 1;
+#ifdef USE_LED_FOR_BREAK_DETECT
+                LED_BREAK_ON;
+#endif                                    
             }
             else
                 current_channel_index++;
@@ -139,6 +149,9 @@ void DMX_Int_Break_Handler (void)
                 TIM_BREAK->CNT = 0;
                 TIM_BREAK->CR1 |= 0x0001;
                 dmx_signal_state++;
+#ifdef USE_LED_FOR_BREAK_DETECT
+                LED_BREAK_OFF;
+#endif
             }
             break;
 

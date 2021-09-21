@@ -104,3 +104,27 @@ arm-none-eabi-size Template_F030_rom.elf
   21036	    104	   1440	  22580	   5834	Template_F030_rom.elf
 
 
+* Validation Tests
+** Probar modelo actual - como cambia colores -
+   - pwm freq 1KHz 16000 pts
+   - ena freq 1KHz 1000 pts
+
+** DONE Seguir con modelo actual pero con modulo filters_and_offsets nuevo
+   CLOSED: [2021-09-20 Mon 09:09]
+   - freq y pts mismas caracteristicas anteriores 
+
+** Con modelo actual cambiar frecuencias de trabajo
+   - pwm freq 4KHz 4096 pts
+   - ena freq 1KHz 1000 pts
+
+
+** Con el nuevo modulo probar post filter - como cambia colores -
+   - pwm freq 4KHz 4096 pts
+   - ena freq 4KHz 4096 pts
+
+*** Este modulo permite dmx bajos trabajarlos con ena
+    - probar bajos valores de dmx (hasta 4), ver ena 
+
+** Acelerar switches en manual
+
+** Medir frequencia de trabajo con input capture en F_CHNLS

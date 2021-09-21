@@ -310,7 +310,7 @@ tests_pwm_pre_post_simul:
 	# first compile common modules (modules to test and dependencies)
 	gcc -c src/dsp.c -I. $(INCDIR)
 	gcc -c src/pwm.c -I. $(INCDIR) -DSTM32F030
-	gcc -c src/filters_and_offsets.c -I. $(INCDIR)
+	gcc -c src/filters_and_offsets.c -I. $(INCDIR) -DSTM32F030
 	# second auxiliary helper modules
 	gcc -c src/tests_ok.c -I $(INCDIR)
 	gcc -c src/tests_vector_utils.c -I $(INCDIR)

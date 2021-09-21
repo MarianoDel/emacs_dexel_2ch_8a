@@ -43,7 +43,7 @@
 #define DUTY_50_PERCENT		2000
 #define DUTY_100_PERCENT	4000
 
-#define USE_TIM_FREQ_16KHZ
+#define USE_TIM_FREQ_4_8KHZ
 #endif
 
 #ifdef USE_PWM_1000_FREQ_4_8KHZ

@@ -35,6 +35,7 @@ extern volatile unsigned char DMX_channel_quantity;
 extern volatile unsigned short adc_ch [];
 
 extern volatile unsigned char f_channel_2_int;
+extern volatile unsigned char f_channel_4_int;
 // Globals ---------------------------------------------------------------------
 
 
@@ -323,10 +324,11 @@ void TF_F_Channels_As_Pwm (void)
 #endif    
 }
 
-void TF_F_Channels_As_ICapture (void)
+void TF_F_Channels_As_ICapture_2 (void)
 {
 #ifdef USE_F_CHNLS_FOR_FREQ_DETECT
     TIM_1_Init();
+    ENA_CH1_ON;
 
     while (1)
     {
@@ -338,6 +340,27 @@ void TF_F_Channels_As_ICapture (void)
                 LED_ON;
             
             f_channel_2_int = 0;
+        }
+    }
+#endif    
+}
+
+void TF_F_Channels_As_ICapture_4 (void)
+{
+#ifdef USE_F_CHNLS_FOR_FREQ_DETECT
+    TIM_1_Init();
+    ENA_CH2_ON;
+
+    while (1)
+    {
+        if (f_channel_4_int)
+        {
+            if (LED)
+                LED_OFF;
+            else
+                LED_ON;
+            
+            f_channel_4_int = 0;
         }
     }
 #endif    

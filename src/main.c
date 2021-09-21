@@ -48,6 +48,7 @@ typedef enum {
     MAIN_IN_DMX_MODE,
     MAIN_IN_MANUAL_MODE,
     MAIN_IN_OVERTEMP,
+    MAIN_IN_OVERCURRENT,
     MAIN_ENTERING_MAIN_MENU,
     MAIN_IN_MAIN_MENU
     
@@ -74,6 +75,9 @@ volatile unsigned short mode_effect_timer;
 volatile unsigned short adc_ch [ADC_CHANNEL_QUANTITY];
 // volatile unsigned char seq_ready;
 
+// externals for overcurrent protection
+extern volatile unsigned char f_channel_2_int;
+extern volatile unsigned char f_channel_4_int;
 
 // Globals ---------------------------------------------------------------------
 //-- Timers globals ----------------------------------
@@ -126,7 +130,8 @@ int main(void)
     // TF_Dmx_Packet_Data ();
     // TF_Pwm_Channels ();
     // TF_F_Channels_As_Pwm ();
-    TF_F_Channels_As_ICapture ();    
+    // TF_F_Channels_As_ICapture_2 ();
+    // TF_F_Channels_As_ICapture_4 ();        
     // TF_Temp_Channel ();    
     // End Hard Tests -------------------------------
 
@@ -396,6 +401,10 @@ int main(void)
                 main_state = MAIN_INIT;
             }
             break;
+
+        case MAIN_IN_OVERCURRENT:
+            
+            break;
             
         case MAIN_ENTERING_MAIN_MENU:
             //deshabilitar salidas hardware
@@ -481,6 +490,34 @@ int main(void)
 #endif    //USE_TEMP_PROT
 #ifdef USE_CTROL_FAN_ALWAYS_ON
         CTRL_FAN_ON;
+#endif
+
+#ifdef USE_OVERCURRENT_PROT
+        if (main_state != MAIN_IN_OVERCURRENT)
+        {
+            if ((f_channel_2_int > 100) ||
+                (f_channel_4_int > 100))
+            {
+                //deshabilitar salidas hardware
+                DMX_DisableRx();
+
+                enable_outputs_by_int = 0;
+                for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
+                    channels_values_int[n] = 0;
+            
+                //reseteo canales
+                PWMChannelsReset();
+
+                CTRL_FAN_ON;
+
+                while (LCD_ShowBlink("LEDs Overcurrent",
+                                     " reset the unit!",
+                                     1,
+                                     BLINK_NO) != resp_finish);
+                
+                main_state = MAIN_IN_OVERCURRENT;
+            }
+        }        
 #endif
 
         

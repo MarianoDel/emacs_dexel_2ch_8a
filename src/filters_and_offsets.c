@@ -85,26 +85,44 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             calc = temp0 * bright;
             // calc >>= 8;
             // limit_output[0] = (unsigned char) calc;
-            // calc >>= 4;    //4000 pts
-            // calc >>= 3;    //8000 pts
-            calc >>= 2;    //16000 pts        
+#ifdef USE_PWM_4000_FREQ_4KHZ
+            calc >>= 4;    //4000 pts
+#endif
+#ifdef USE_PWM_8000_FREQ_2KHZ            
+            calc >>= 3;    //8000 pts
+#endif
+#ifdef USE_PWM_16000_FREQ_1KHZ
+            calc >>= 2;    //16000 pts
+#endif
             limit_output[0] = (unsigned short) calc;
         
             calc = temp1 * bright;
             // calc >>= 8;
             // limit_output[1] = (unsigned char) calc;
-            // calc >>= 4;    //4000 pts        
-            // calc >>= 3;    //8000 pts
-            calc >>= 2;    //16000 pts        
+#ifdef USE_PWM_4000_FREQ_4KHZ
+            calc >>= 4;    //4000 pts
+#endif
+#ifdef USE_PWM_8000_FREQ_2KHZ            
+            calc >>= 3;    //8000 pts
+#endif
+#ifdef USE_PWM_16000_FREQ_1KHZ
+            calc >>= 2;    //16000 pts
+#endif
             limit_output[1] = (unsigned short) calc;
         }
 
         if (mem_conf.channels_operation_mode == ONECH_MODE)
         {
             calc = *(ch_dmx_val + 0);
-            // calc <<= 4;    //4000 pts
-            // calc <<= 5;    //8000 pts
+#ifdef USE_PWM_4000_FREQ_4KHZ
+            calc <<= 4;    //4000 pts
+#endif
+#ifdef USE_PWM_8000_FREQ_2KHZ            
+            calc <<= 5;    //8000 pts
+#endif
+#ifdef USE_PWM_16000_FREQ_1KHZ
             calc <<= 6;    //16000 pts        
+#endif
             limit_output[0] = (unsigned short) calc;
             limit_output[1] = limit_output[0];
         }
@@ -167,7 +185,11 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             if (ch1_last_pwm <= 1000)
             {
                 ch1_last_pwm += 10;
+#ifdef USE_F_CHNLS_FOR_ENABLE
                 PWM_Update_ENA1(ch1_last_pwm);
+#else
+                ENA_CH1_ON;
+#endif
             }
             else
                 ch1_enable_state = CHNL_ENA_UP;
@@ -179,7 +201,11 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             if (ch1_last_pwm > 0)
             {
                 ch1_last_pwm -= 10;
+#ifdef USE_F_CHNLS_FOR_ENABLE                
                 PWM_Update_ENA1(ch1_last_pwm);
+#else
+                ENA_CH1_OFF;
+#endif
             }
             else
                 ch1_enable_state = CHNL_ENA_DOWN;
@@ -191,7 +217,11 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             if (ch2_last_pwm <= 1000)
             {
                 ch2_last_pwm += 10;
+#ifdef USE_F_CHNLS_FOR_ENABLE
                 PWM_Update_ENA2(ch2_last_pwm);
+#else
+                ENA_CH2_ON;
+#endif
             }
             else
                 ch2_enable_state = CHNL_ENA_UP;
@@ -203,7 +233,11 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
             if (ch2_last_pwm > 0)
             {
                 ch2_last_pwm -= 10;
+#ifdef USE_F_CHNLS_FOR_ENABLE
                 PWM_Update_ENA2(ch2_last_pwm);
+#else
+                ENA_CH2_OFF;
+#endif
             }
             else
                 ch2_enable_state = CHNL_ENA_DOWN;
@@ -226,7 +260,10 @@ void CheckFiltersAndOffsets_SM (volatile unsigned char * ch_dmx_val)
 void FiltersAndOffsets_Pre_Mapping_SM (volatile unsigned char * ch_dmx_val)
 {
     unsigned int calc = 0;
-    unsigned short ch1_pwm, ch2_pwm, ena1_pwm, ena2_pwm;
+    unsigned short ch1_pwm, ch2_pwm;
+#ifdef USE_F_CHNLS_FOR_ENABLE
+    unsigned short ena1_pwm, ena2_pwm;
+#endif
     
     switch (filters_sm)
     {
@@ -297,6 +334,7 @@ void FiltersAndOffsets_Pre_Mapping_SM (volatile unsigned char * ch_dmx_val)
         ch2_pwm = MA32_U16Circular (&st_sp2, *(limit_output + CH2_VAL_OFFSET));
         PWM_Update_CH2(ch2_pwm);
 
+#ifdef USE_F_CHNLS_FOR_ENABLE
         // ena 1
         ena1_pwm = MA32_U16Circular (&st_ena1, *(ena_output + CH1_VAL_OFFSET));
         PWM_Update_ENA1(ena1_pwm);
@@ -304,6 +342,7 @@ void FiltersAndOffsets_Pre_Mapping_SM (volatile unsigned char * ch_dmx_val)
         // ena 2
         ena2_pwm = MA32_U16Circular (&st_ena2, *(ena_output + CH2_VAL_OFFSET));
         PWM_Update_ENA2(ena2_pwm);
+#endif
         
         filters_sm++;
         break;
@@ -341,11 +380,11 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
             temp1 = 255 - temp0;
         
             calc = temp0 * bright;
-            calc >>= 8;    // to 255 again
+            calc >>= 7;    // to 511
             limit_output[0] = (unsigned short) calc;
         
             calc = temp1 * bright;
-            calc >>= 8;    // to 255 again            
+            calc >>= 7;    // to 511            
             limit_output[1] = (unsigned short) calc;
         }
 
@@ -361,11 +400,11 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
     case FILTERS_LIMIT_EACH_CHANNEL:        
         // the limit is the same for the two channels        
         calc = limit_output[0] * mem_conf.max_current_channels[0];
-        calc >>= 8;
+        calc >>= 7;    // to 1023
         limit_output[0] = (unsigned short) calc;
 
         calc = limit_output[1] * mem_conf.max_current_channels[1];
-        calc >>= 8;
+        calc >>= 7;    // to 1023
         limit_output[1] = (unsigned short) calc;
 
         filters_sm++;
@@ -373,11 +412,11 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
 
     case FILTERS_OUTPUTS:    // apply filters before mapping        
         // channel 1
-        limit_output[0] <<= 3;
+        limit_output[0] <<= 2;
         limit_output[0] = MA32_U16Circular (&st_sp1, *(limit_output + CH1_VAL_OFFSET));
 
         // channel 2
-        limit_output[1] <<= 3;
+        limit_output[1] <<= 2;
         limit_output[1] = MA32_U16Circular (&st_sp2, *(limit_output + CH2_VAL_OFFSET));
         
         filters_sm++;
@@ -387,15 +426,30 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
         PWM_Map_Post_Filter (limit_output[0],
                             &ena1_pwm,
                             &ch1_pwm);
-        
+#ifdef USE_F_CHNLS_FOR_ENABLE
         PWM_Update_ENA1(ena1_pwm);
+#else
+        if (ch1_pwm)
+            ENA_CH1_ON;
+        else
+            ENA_CH1_OFF;
+        
+#endif
         PWM_Update_CH1(ch1_pwm);
 
         PWM_Map_Post_Filter (limit_output[1],
                             &ena2_pwm,
                             &ch2_pwm);
 
+#ifdef USE_F_CHNLS_FOR_ENABLE
         PWM_Update_ENA2(ena2_pwm);
+#else
+        if (ch2_pwm)
+            ENA_CH2_ON;
+        else
+            ENA_CH2_OFF;
+        
+#endif
         PWM_Update_CH2(ch2_pwm);
         
         filters_sm++;

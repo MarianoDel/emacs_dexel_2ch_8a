@@ -29,14 +29,21 @@
 // #define USE_F_CHNLS_FOR_ENABLE        //this one or the later
 #define USE_F_CHNLS_FOR_FREQ_DETECT    //this one or the former
 
+#define USE_OVERCURRENT_PROT
+
 // -- Freq for the timers
-#define USE_PWM_16000_FREQ_1KHZ
+// #define USE_PWM_16000_FREQ_1KHZ
+#define USE_PWM_4000_FREQ_4KHZ
 // #define USE_PWM_8000_FREQ_2KHZ
 // #define USE_
 
 
 //---- End of Features Configuration ----------
-
+#ifdef USE_OVERCURRENT_PROT
+#ifndef USE_F_CHNLS_FOR_FREQ_DETECT
+#error "must use f channels for detect overcurrent"
+#endif
+#endif
 
 // Exported Pinout Names -------------------------------------------------------
 #ifdef HARDWARE_VERSION_1_1

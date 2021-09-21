@@ -35,7 +35,8 @@ void TF_Dmx_Packet (void);
 void TF_Dmx_Packet_Data (void);
 void TF_Pwm_Channels (void);
 void TF_F_Channels_As_Pwm (void);
-void TF_F_Channels_As_ICapture (void);
+void TF_F_Channels_As_ICapture_2 (void);
+void TF_F_Channels_As_ICapture_4 (void);
 void TF_Temp_Channel (void);
 
 #endif    /* _TEST_FUNTIONS_H_ */
