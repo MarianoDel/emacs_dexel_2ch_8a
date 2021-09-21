@@ -105,7 +105,8 @@ arm-none-eabi-size Template_F030_rom.elf
 
 
 * Validation Tests
-** Probar modelo actual - como cambia colores -
+** DONE Probar modelo actual - como cambia colores -
+   CLOSED: [2021-09-20 Tue 15:47]
    - pwm freq 1KHz 16000 pts
    - ena freq 1KHz 1000 pts
 
@@ -113,18 +114,24 @@ arm-none-eabi-size Template_F030_rom.elf
    CLOSED: [2021-09-20 Mon 09:09]
    - freq y pts mismas caracteristicas anteriores 
 
-** Con modelo actual cambiar frecuencias de trabajo
+** DONE Con modelo actual cambiar frecuencias de trabajo
+   CLOSED: [2021-09-20 Tue 15:47]
    - pwm freq 4KHz 4096 pts
    - ena freq 1KHz 1000 pts
 
 
-** Con el nuevo modulo probar post filter - como cambia colores -
+** DONE Con el nuevo modulo probar post filter - como cambia colores -
+   CLOSED: [2021-09-20 Tue 15:47]
    - pwm freq 4KHz 4096 pts
    - ena freq 4KHz 4096 pts
 
 *** Este modulo permite dmx bajos trabajarlos con ena
     - probar bajos valores de dmx (hasta 4), ver ena 
 
-** Acelerar switches en manual
+** DONE Acelerar switches en manual
+   CLOSED: [2021-09-20 Tue 15:47]
 
-** Medir frequencia de trabajo con input capture en F_CHNLS
+** DONE Medir frequencia de trabajo con input capture en F_CHNLS
+   CLOSED: [2021-09-21 Tue 15:47]
+
+* TODO Blanquear contadores de errores con ena
