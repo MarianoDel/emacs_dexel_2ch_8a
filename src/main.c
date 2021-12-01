@@ -136,19 +136,28 @@ int main(void)
     // End Hard Tests -------------------------------
 
     // Hardware Inits. ---------------------------
-    // Timer for PWM
+    // Timer for PWM and ENA
     TIM_3_Init ();
     PWMChannelsReset ();
     EnablePreload_PWM1;
     EnablePreload_PWM2;
     
-    // Timer for PWM on ENAs
+    // Timer for overcurrent protection
     TIM_1_Init ();
+#ifdef HARDWARE_VERSION_1_2
+    PWM_Update_ENA1 (0);
+    PWM_Update_ENA2 (0);
+    EnablePreload_ENA1;
+    EnablePreload_ENA2;
+#endif
+
+#ifdef HARDWARE_VERSION_1_1
 #ifndef USE_F_CHNLS_FOR_FREQ_DETECT
     PWM_Update_ENA1 (0);
     PWM_Update_ENA2 (0);
     EnablePreload_ENA1;
     EnablePreload_ENA2;
+#endif
 #endif
     
     // Usart and Timer for DMX

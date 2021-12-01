@@ -26,7 +26,7 @@
 #define Temp_Channel		adc_ch[0]
 #define ADC_CHANNEL_QUANTITY         1
 #define ADC_LAST_CHANNEL_QUANTITY    (ADC_CHANNEL_QUANTITY - 1)
-#define ADC_All_Orer_Channels    (ADC_Channel_8)
+#define ADC_All_Orer_Channels    (ADC_Channel_4)
 
 
 #define RCC_ADC_CLK    (RCC->APB2ENR & 0x00000200)

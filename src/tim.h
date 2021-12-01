@@ -61,15 +61,19 @@
 
 #define EnablePreload_TIM3_CH1    (TIM3->CCMR1 |= TIM_CCMR1_OC1PE)
 #define EnablePreload_TIM3_CH2    (TIM3->CCMR1 |= TIM_CCMR1_OC2PE)
+#define EnablePreload_TIM3_CH3    (TIM3->CCMR2 |= TIM_CCMR2_OC3PE)
+#define EnablePreload_TIM3_CH4    (TIM3->CCMR2 |= TIM_CCMR2_OC4PE)
 
 #define DisablePreload_TIM3_CH1    (TIM3->CCMR1 &= ~TIM_CCMR1_OC1PE)
 #define DisablePreload_TIM3_CH2    (TIM3->CCMR1 &= ~TIM_CCMR1_OC2PE)
+#define DisablePreload_TIM3_CH3    (TIM3->CCMR2 &= ~TIM_CCMR2_OC3PE)
+#define DisablePreload_TIM3_CH4    (TIM3->CCMR2 &= ~TIM_CCMR2_OC4PE)
 
 #define EnablePreload_TIM1_CH2    (TIM1->CCMR1 |= TIM_CCMR1_OC2PE)
-#define EnablePreload_TIM1_CH4    (TIM1->CCMR1 |= TIM_CCMR2_OC4PE)
+#define EnablePreload_TIM1_CH4    (TIM1->CCMR2 |= TIM_CCMR2_OC4PE)
 
 #define DisablePreload_TIM1_CH2    (TIM1->CCMR1 &= ~TIM_CCMR1_OC2PE)
-#define DisablePreload_TIM1_CH4    (TIM1->CCMR1 &= ~TIM_CCMR2_OC4PE)
+#define DisablePreload_TIM1_CH4    (TIM1->CCMR2 &= ~TIM_CCMR2_OC4PE)
 
 #define CTRL_CH1(X)    Update_TIM3_CH1(X)
 #define CTRL_CH2(X)    Update_TIM3_CH2(X)

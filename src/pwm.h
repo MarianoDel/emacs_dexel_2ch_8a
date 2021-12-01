@@ -12,7 +12,7 @@
 #ifndef __PWM_H_
 #define __PWM_H_
 
-// #include "tim.h"
+#include "hard.h"
 
 // Exported Types --------------------------------------------------------------
 
@@ -30,6 +30,16 @@
 #define PWM_Update_CH1(X)    Update_TIM3_CH1(X)
 #define PWM_Update_CH2(X)    Update_TIM3_CH2(X)
 
+#if (defined HARDWARE_VERSION_1_2)
+#define EnablePreload_ENA1    EnablePreload_TIM3_CH3
+#define EnablePreload_ENA2    EnablePreload_TIM3_CH4
+
+#define DisablePreload_ENA1    DisablePreload_TIM3_CH3
+#define DisablePreload_ENA2    DisablePreload_TIM3_CH4
+
+#define PWM_Update_ENA1(X)    Update_TIM3_CH3(X)
+#define PWM_Update_ENA2(X)    Update_TIM3_CH4(X)
+#elif (defined HARDWARE_VERSION_1_1)
 #define EnablePreload_ENA1    EnablePreload_TIM1_CH2
 #define EnablePreload_ENA2    EnablePreload_TIM1_CH4
 
@@ -38,6 +48,9 @@
 
 #define PWM_Update_ENA1(X)    Update_TIM1_CH2(X)
 #define PWM_Update_ENA2(X)    Update_TIM1_CH4(X)
+#else
+#error "no hard version on pwm.h"
+#endif
 
 
 

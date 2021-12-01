@@ -109,6 +109,42 @@ void TIM_1_Init (void)
     if (!RCC_TIM1_CLK)
         RCC_TIM1_CLK_ON;
 
+#ifdef HARDWARE_VERSION_1_2
+    //Configuracion del timer.
+    TIM1->CR1 = 0x00;		//clk int / 1; upcounting
+    // TIM1->CR2 |= TIM_CR2_MMS_1;		//UEV -> TRG0
+
+    TIM1->SMCR = 0x0000;
+    // TIM1->CCMR1 = 0x2100;    //CH2 input filtered N=4 map IC2->TI2
+    // TIM1->CCMR2 = 0x2100;    //CH4 input filtered N=4 map IC4->TI4
+    TIM1->CCMR1 = 0x2d00;    //CH2 input filtered N=4 map IC2->TI2, pres / 8
+    TIM1->CCMR2 = 0x2d00;    //CH4 input filtered N=4 map IC4->TI4, pres / 8
+    
+    TIM1->CCER |= TIM_CCER_CC4E | TIM_CCER_CC2E;    //CH4 & CH2 capture enable rising edge    
+    TIM1->ARR = 0xFFFF;
+    TIM1->CNT = 0;
+
+    TIM1->PSC = 47;
+#ifdef USE_OVERCURRENT_PROT
+    // Enable timer interrupt see UDIS
+    TIM1->DIER |= TIM_DIER_CC4IE | TIM_DIER_CC2IE;    // int on CC4 CC2 & overflow    
+    // NVIC_EnableIRQ(TIM1_BRK_UP_TRG_COM_IRQn);
+    // NVIC_SetPriority(TIM1_BRK_UP_TRG_COM_IRQn, 1);
+    NVIC_EnableIRQ(TIM1_CC_IRQn);
+    NVIC_SetPriority(TIM1_CC_IRQn, 8);
+#endif    
+    
+    //Alternate Fuction Pin Configurations
+    temp = GPIOA->AFR[1];
+    temp &= 0xFFFF0F0F;    
+    temp |= 0x00002020;    //PA11 -> AF2; PA9 -> AF2
+    GPIOA->AFR[1] = temp;
+    
+    TIM1->CR1 |= TIM_CR1_CEN;
+#endif    //HARDWARE_VERSION_1_2
+
+    
+#ifdef HARDWARE_VERSION_1_1
 #ifdef USE_F_CHNLS_FOR_FREQ_DETECT
     //Configuracion del timer.
     TIM1->CR1 = 0x00;		//clk int / 1; upcounting
@@ -161,9 +197,65 @@ void TIM_1_Init (void)
     GPIOA->AFR[1] = temp;
     
     TIM1->CR1 |= TIM_CR1_CEN;
+#endif    //HARDWARE_VERSION_1_1
 }
 
 
+#if (defined HARDWARE_VERSION_1_2) && (defined USE_OVERCURRENT_PROT)
+volatile unsigned short capture_ch2 = 0;
+volatile unsigned short capture_ch4 = 0;
+void TIM1_CC_IRQHandler (void)
+{
+    // IC2 int
+    if (TIM1->SR & (TIM_SR_CC2IF | TIM_SR_CC2OF))	//reset flag capture and overcapture
+    {
+        unsigned short interval = 0;
+        
+        if (TIM1->CCR2 < capture_ch2)
+        {
+            //overflow
+            interval = 0xffff - capture_ch2;
+            interval += TIM1->CCR2;
+        }
+        else
+            interval = TIM1->CCR2 - capture_ch2;
+
+        capture_ch2 = TIM1->CCR2;
+
+        // if (interval > 28)    //28us 35.7KHz
+        if (interval > 224)    //28us 35.7KHz * 8 prescaler         
+            f_channel_2_int++;
+
+        TIM1->SR &= ~(TIM_SR_CC2IF | TIM_SR_CC2OF);
+    }
+
+    // IC4 int
+    else if (TIM1->SR & (TIM_SR_CC4IF | TIM_SR_CC4OF))	//reset flag capture and overcapture
+    {
+        unsigned short interval = 0;
+        
+        if (TIM1->CCR4 < capture_ch4)
+        {
+            //overflow
+            interval = 0xffff - capture_ch4;
+            interval += TIM1->CCR4;
+        }
+        else
+            interval = TIM1->CCR4 - capture_ch4;
+
+        capture_ch4 = TIM1->CCR4;
+
+        // if (interval > 28)    //28us 35.7KHz
+        if (interval > 224)    //28us 35.7KHz * 8 prescaler                     
+            f_channel_4_int++;
+
+        TIM1->SR &= ~(TIM_SR_CC4IF | TIM_SR_CC4OF);
+    }
+}
+#endif    //HARDWARE_VERSION_1_2
+
+
+#ifdef HARDWARE_VERSION_1_1
 #if (defined USE_F_CHNLS_FOR_FREQ_DETECT) && (defined USE_OVERCURRENT_PROT)
 volatile unsigned short capture_ch2 = 0;
 volatile unsigned short capture_ch4 = 0;
@@ -216,6 +308,7 @@ void TIM1_CC_IRQHandler (void)
     }
 }
 #endif
+#endif    //HARDWARE_VERSION_1_1
 
 
 void TIM_3_Init (void)
@@ -235,11 +328,13 @@ void TIM_3_Init (void)
     // TIM3->SMCR |= TIM_SMCR_SMS_2;			//trigger: reset mode; link timer 1
     // TIM3->SMCR |= TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1;	//trigger: trigger mode; link timer 1    
     TIM3->CCMR1 = 0x6060;      //CH1, CH2 output PWM mode 1 (channel active TIM3->CNT < TIM3->CCR1)
-    // TIM3->CCMR2 = 0x6060;      //CH3, CH4 output PWM mode 1 (channel active TIM3->CNT < TIM3->CCR1)
-    TIM3->CCMR2 = 0x0000;
+    TIM3->CCER |= TIM_CCER_CC2E | TIM_CCER_CC1E;    //CH2 y CH1 enable on pin direct polarity    
+#ifdef HARDWARE_VERSION_1_2
+    TIM3->CCMR2 = 0x6060;      //CH3, CH4 output PWM mode 1 (channel active TIM3->CNT < TIM3->CCR1)
+    // TIM3->CCMR2 = 0x0000;
+    TIM3->CCER |= TIM_CCER_CC4E | TIM_CCER_CC3E;    //CH4 y CH3 enable on pin direct polarity    
+#endif
     
-    TIM3->CCER |= TIM_CCER_CC2E | TIM_CCER_CC1E;    //CH2 y CH1 enable on pin direct polarity
-
     TIM3->ARR = DUTY_100_PERCENT;        //tick cada 20.83us --> 48KHz
     TIM3->CNT = 0;
 
@@ -257,10 +352,12 @@ void TIM_3_Init (void)
     temp |= 0x11000000;    //PA7 -> AF1; PA6 -> AF1
     GPIOA->AFR[0] = temp;
 
-    // temp = GPIOB->AFR[0];
-    // temp &= 0xFFFFFF00;	
-    // temp |= 0x00000011;    //PB1 -> AF1; PB0 -> AF1
-    // GPIOB->AFR[0] = temp;
+#ifdef HARDWARE_VERSION_1_2    
+    temp = GPIOB->AFR[0];
+    temp &= 0xFFFFFF00;	
+    temp |= 0x00000011;    //PB1 -> AF1; PB0 -> AF1
+    GPIOB->AFR[0] = temp;
+#endif
     
     // Enable timer ver UDIS
     //TIM3->DIER |= TIM_DIER_UIE;

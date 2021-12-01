@@ -82,6 +82,30 @@ void GPIO_Config (void)
     if (!GPIOA_CLK)
         GPIOA_CLK_ON;
 
+#ifdef HARDWARE_VERSION_1_2
+    temp = GPIOA->MODER;    //2 bits por pin
+    temp &= 0x3C000000;    //PA0 - PA3 output; PA4 analog; PA5 output; PA6 - PA7 alternative
+    temp |= 0x41A8A755;    //PA8 input exti; PA9 PA10 PA11 alternative; PA12 PA15 output
+    GPIOA->MODER = temp;
+
+    temp = GPIOA->OTYPER;    //1 bit por pin
+    temp &= 0xFFFFFFFF;    //
+    temp |= 0x00000000;
+    GPIOA->OTYPER = temp;
+    
+    temp = GPIOA->OSPEEDR;	//2 bits por pin
+    temp &= 0x3CFF0300;    
+    temp |= 0x00000000;    //PA0 - PA3 low speed; PA5 - PA7 low speed
+                           //PA12 PA15 low speed
+    GPIOA->OSPEEDR = temp;
+
+    temp = GPIOA->PUPDR;	//2 bits por pin
+    temp &= 0xFF33FFFF;    //PA9 PA11 pulldwn
+    temp |= 0x00880000;
+    GPIOA->PUPDR = temp;
+#endif    //HARDWARE_VERSION_1_2
+
+#ifdef HARDWARE_VERSION_1_1
     temp = GPIOA->MODER;    //2 bits por pin
     temp &= 0x3C000000;    //PA0 - PA5 output; PA6 - PA7 alternative
     temp |= 0x41A8A555;    //PA8 input exti; PA9 PA10 PA11 alternative; PA12 PA15 output
@@ -101,6 +125,7 @@ void GPIO_Config (void)
     temp &= 0xFF33FFFF;    //PA9 PA11 pulldwn
     temp |= 0x00880000;
     GPIOA->PUPDR = temp;
+#endif    //HARDWARE_VERSION_1_1
     
 #endif
 
@@ -110,6 +135,29 @@ void GPIO_Config (void)
     if (!GPIOB_CLK)
         GPIOB_CLK_ON;
 
+#ifdef HARDWARE_VERSION_1_2
+    temp = GPIOB->MODER;    //2 bits por pin
+    temp &= 0xFFFF0030;    //PB0 PB1 output; PB3 - PB5 input; PB6 output; PB7 alternative
+    temp |= 0x00009005;
+    GPIOB->MODER = temp;
+
+    temp = GPIOB->OTYPER;	//1 bit por pin
+    temp &= 0xFFFFFFFF;
+    temp |= 0x00000000;
+    GPIOB->OTYPER = temp;
+
+    temp = GPIOB->OSPEEDR;	//2 bits por pin
+    temp &= 0xFFFFCFF0;        //PB0 PB1 low speed; PB6 low speed
+    temp |= 0x00000000;		//low speed
+    GPIOB->OSPEEDR = temp;
+
+    temp = GPIOB->PUPDR;	//2 bits por pin
+    temp &= 0xFFFFF03F;    //PB3 PB4 PB5 pullup
+    temp |= 0x00000540;
+    GPIOB->PUPDR = temp;
+#endif    //HARDWARE_VERSION_1_2
+    
+#ifdef HARDWARE_VERSION_1_1
     temp = GPIOB->MODER;    //2 bits por pin
     temp &= 0xFFFFC030;    //PB0 analog; PB1 output; PB3 - PB5 input; PB6 output
     temp |= 0x00001007;
@@ -129,7 +177,8 @@ void GPIO_Config (void)
     temp &= 0xFFFFF03F;    //PB3 PB4 PB5 pullup
     temp |= 0x00000540;
     GPIOB->PUPDR = temp;
-
+#endif    //HARDWARE_VERSION_1_1
+    
 #endif
 
 #ifdef GPIOF_ENABLE
@@ -138,6 +187,29 @@ void GPIO_Config (void)
     if (!GPIOF_CLK)
         GPIOF_CLK_ON;
 
+#ifdef HARDWARE_VERSION_1_2
+    temp = GPIOF->MODER;
+    temp &= 0xFFFFFFF0;    //PF0 PF1 output
+    temp |= 0x00000005;
+    GPIOF->MODER = temp;
+
+    temp = GPIOF->OTYPER;
+    temp &= 0xFFFFFFFF;
+    temp |= 0x00000000;
+    GPIOF->OTYPER = temp;
+
+    temp = GPIOF->OSPEEDR;
+    temp &= 0xFFFFFFF0;    //PF0 PF1 low speed
+    temp |= 0x00000000;
+    GPIOF->OSPEEDR = temp;
+
+    temp = GPIOF->PUPDR;
+    temp &= 0xFFFFFFFF;
+    temp |= 0x00000000;
+    GPIOF->PUPDR = temp;
+#endif    //HARDWARE_VERSION_1_2
+
+#ifdef HARDWARE_VERSION_1_1
     temp = GPIOF->MODER;
     temp &= 0xFFFFFFF0;
     temp |= 0x00000005;
@@ -157,7 +229,8 @@ void GPIO_Config (void)
     temp &= 0xFFFFFFFF;
     temp |= 0x00000000;
     GPIOF->PUPDR = temp;
-
+#endif    //HARDWARE_VERSION_1_1
+    
 #endif
 
 #ifdef WITH_EXTI

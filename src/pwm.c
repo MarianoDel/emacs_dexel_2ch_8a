@@ -31,7 +31,7 @@ void PWMChannelsReset (void)
 {
     PWM_Update_CH1(DUTY_NONE);
     PWM_Update_CH2(DUTY_NONE);
-#ifdef HARDWARE_VERSION_1_1
+#if (defined HARDWARE_VERSION_1_1) || (defined HARDWARE_VERSION_1_2)
     ENA_CH1_OFF;
     ENA_CH2_OFF;
 #endif
