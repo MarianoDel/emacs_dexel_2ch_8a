@@ -390,8 +390,11 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
 
         if (mem_conf.channels_operation_mode == ONECH_MODE)
         {
+            calc = *(ch_dmx_val + 0);
+            calc <<= 1;    // to 511
+            
             limit_output[0] = (unsigned short) calc;
-            limit_output[1] = limit_output[0];
+            limit_output[1] = 0;
         }
 
         filters_sm++;
@@ -426,6 +429,10 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
         PWM_Map_Post_Filter (limit_output[0],
                             &ena1_pwm,
                             &ch1_pwm);
+
+#if (defined HARDWARE_VERSION_1_2)
+        PWM_Update_ENA1(ena1_pwm);
+#elif (defined HARDWARE_VERSION_1_1)
 #ifdef USE_F_CHNLS_FOR_ENABLE
         PWM_Update_ENA1(ena1_pwm);
 #else
@@ -433,14 +440,20 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
             ENA_CH1_ON;
         else
             ENA_CH1_OFF;
-        
+#endif  
+#else
+#error "no hardware version on filters_and_offsets.c"
 #endif
+        
         PWM_Update_CH1(ch1_pwm);
 
         PWM_Map_Post_Filter (limit_output[1],
                             &ena2_pwm,
                             &ch2_pwm);
 
+#if (defined HARDWARE_VERSION_1_2)
+        PWM_Update_ENA2(ena2_pwm);
+#elif (defined HARDWARE_VERSION_1_1)
 #ifdef USE_F_CHNLS_FOR_ENABLE
         PWM_Update_ENA2(ena2_pwm);
 #else
@@ -450,6 +463,10 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
             ENA_CH2_OFF;
         
 #endif
+#else
+#error "no hardware version on filters_and_offsets.c"
+#endif
+
         PWM_Update_CH2(ch2_pwm);
         
         filters_sm++;

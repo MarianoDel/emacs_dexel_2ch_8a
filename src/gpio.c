@@ -103,6 +103,7 @@ void GPIO_Config (void)
     temp &= 0xFF33FFFF;    //PA9 PA11 pulldwn
     temp |= 0x00880000;
     GPIOA->PUPDR = temp;
+
 #endif    //HARDWARE_VERSION_1_2
 
 #ifdef HARDWARE_VERSION_1_1
@@ -127,7 +128,7 @@ void GPIO_Config (void)
     GPIOA->PUPDR = temp;
 #endif    //HARDWARE_VERSION_1_1
     
-#endif
+#endif    //GPIOA_ENABLE
 
 #ifdef GPIOB_ENABLE
 
@@ -137,8 +138,10 @@ void GPIO_Config (void)
 
 #ifdef HARDWARE_VERSION_1_2
     temp = GPIOB->MODER;    //2 bits por pin
-    temp &= 0xFFFF0030;    //PB0 PB1 output; PB3 - PB5 input; PB6 output; PB7 alternative
-    temp |= 0x00009005;
+    // temp &= 0xFFFF0030;    //PB0 PB1 alternative; PB3 - PB5 input; PB6 output; PB7 alternative
+    // temp |= 0x0000900A;        
+    temp &= 0xFFFFC030;    //PB0 PB1 alternative; PB3 - PB5 input; PB6 output; PB7 none
+    temp |= 0x0000100A;
     GPIOB->MODER = temp;
 
     temp = GPIOB->OTYPER;	//1 bit por pin
@@ -179,7 +182,7 @@ void GPIO_Config (void)
     GPIOB->PUPDR = temp;
 #endif    //HARDWARE_VERSION_1_1
     
-#endif
+#endif    //GPIOB_ENABLE
 
 #ifdef GPIOF_ENABLE
 
@@ -231,7 +234,7 @@ void GPIO_Config (void)
     GPIOF->PUPDR = temp;
 #endif    //HARDWARE_VERSION_1_1
     
-#endif
+#endif    //GPIOF_ENABLE
 
 #ifdef WITH_EXTI
     //Interrupt on PA8

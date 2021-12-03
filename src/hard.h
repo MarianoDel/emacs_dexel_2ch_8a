@@ -30,7 +30,7 @@
 // #define USE_F_CHNLS_FOR_ENABLE        //this one or the later
 // #define USE_F_CHNLS_FOR_FREQ_DETECT    //this one or the former
 
-#define USE_OVERCURRENT_PROT
+// #define USE_OVERCURRENT_PROT
 
 // -- Freq for the timers
 // #define USE_PWM_16000_FREQ_1KHZ
@@ -43,6 +43,12 @@
 #if (defined HARDWARE_VERSION_1_1) && (defined USE_OVERCURRENT_PROT)
 #ifndef USE_F_CHNLS_FOR_FREQ_DETECT
 #error "must use f channels for detect overcurrent"
+#endif
+#endif
+
+#ifdef HARDWARE_VERSION_1_2
+#if (defined USE_F_CHNLS_FOR_FREQ_DETECT) || (defined USE_F_CHNLS_FOR_ENABLE)
+#error "f channels not used for freq nor channels on version 1.2"
 #endif
 #endif
 

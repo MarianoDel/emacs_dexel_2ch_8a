@@ -528,9 +528,6 @@ int main(void)
             }
         }        
 #endif
-
-        
-        
         
     }    //end of while 1
 
