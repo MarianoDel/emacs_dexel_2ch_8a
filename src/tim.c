@@ -222,9 +222,15 @@ void TIM1_CC_IRQHandler (void)
 
         capture_ch2 = TIM1->CCR2;
 
-        // if (interval > 28)    //28us 35.7KHz
-        if (interval > 224)    //28us 35.7KHz * 8 prescaler         
-            f_channel_2_int++;
+        // check for fully enabled channel
+        if (TIM3->CCR3 > 4095)            
+        {
+            // if (interval > 28)    //28us 35.7KHz
+            if (interval > 224)    //28us 35.7KHz * 8 prescaler         
+                f_channel_2_int++;
+        }
+        else
+            f_channel_2_int = 0;
 
         TIM1->SR &= ~(TIM_SR_CC2IF | TIM_SR_CC2OF);
     }
@@ -245,9 +251,15 @@ void TIM1_CC_IRQHandler (void)
 
         capture_ch4 = TIM1->CCR4;
 
-        // if (interval > 28)    //28us 35.7KHz
-        if (interval > 224)    //28us 35.7KHz * 8 prescaler                     
-            f_channel_4_int++;
+        // check for fully enabled channel
+        if (TIM3->CCR4 > 4095)
+        {
+            // if (interval > 28)    //28us 35.7KHz
+            if (interval > 224)    //28us 35.7KHz * 8 prescaler                     
+                f_channel_4_int++;
+        }
+        else
+            f_channel_4_int = 0;
 
         TIM1->SR &= ~(TIM_SR_CC4IF | TIM_SR_CC4OF);
     }

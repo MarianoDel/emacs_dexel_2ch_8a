@@ -30,7 +30,7 @@
 // #define USE_F_CHNLS_FOR_ENABLE        //this one or the later
 // #define USE_F_CHNLS_FOR_FREQ_DETECT    //this one or the former
 
-// #define USE_OVERCURRENT_PROT
+#define USE_OVERCURRENT_PROT
 
 // -- Freq for the timers
 // #define USE_PWM_16000_FREQ_1KHZ

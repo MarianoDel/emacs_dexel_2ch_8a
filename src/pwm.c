@@ -29,9 +29,15 @@
 // Module Functions ------------------------------------------------------------
 void PWMChannelsReset (void)
 {
+#ifdef HARDWARE_VERSION_1_2
     PWM_Update_CH1(DUTY_NONE);
     PWM_Update_CH2(DUTY_NONE);
-#if (defined HARDWARE_VERSION_1_1) || (defined HARDWARE_VERSION_1_2)
+    PWM_Update_ENA1(DUTY_NONE);
+    PWM_Update_ENA2(DUTY_NONE);
+#endif
+#if (defined HARDWARE_VERSION_1_1) || (defined HARDWARE_VERSION_1_0)
+    PWM_Update_CH1(DUTY_NONE);
+    PWM_Update_CH2(DUTY_NONE);
     ENA_CH1_OFF;
     ENA_CH2_OFF;
 #endif
