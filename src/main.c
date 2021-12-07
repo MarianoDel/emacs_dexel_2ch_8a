@@ -14,7 +14,7 @@
 
 #include "gpio.h"
 #include "tim.h"
-#include "uart.h"
+#include "usart.h"
 #include "adc.h"
 #include "dma.h"
 #include "flash_program.h"
@@ -66,6 +66,7 @@ volatile unsigned char dmx_buff_data[SIZEOF_DMX_BUFFER_DATA];
 volatile unsigned char Packet_Detected_Flag = 0;
 volatile unsigned short DMX_channel_selected = 0;
 volatile unsigned char DMX_channel_quantity = 0;
+volatile unsigned char dmx_receive_flag = 0;
 
 // externals shared by modes
 unsigned char mode_state;
@@ -281,7 +282,7 @@ int main(void)
             ptFTT = &DMXMode_UpdateTimers;
 
             // packet reception enable
-            // DMX_EnableRx();
+            DMX_EnableRx();
 
             // habilito salidas si estoy con int
             enable_outputs_by_int = 1;
@@ -292,6 +293,9 @@ int main(void)
             break;
 
         case MAIN_MANUAL_MODE_INIT:
+            // packet reception disable, check for colors
+            DMX_DisableRx();
+
             // habilito salidas si estoy con int
             enable_outputs_by_int = 1;
 
@@ -380,9 +384,9 @@ int main(void)
                 main_state = MAIN_ENTERING_MAIN_MENU;
 
             // Dmx presence autodetection
-            if (Packet_Detected_Flag)
+            if (dmx_receive_flag)
             {
-                Packet_Detected_Flag = 0;
+                dmx_receive_flag = 0;
                 packet_cnt++;
                 timer_standby = 1000;
             }

@@ -16,7 +16,7 @@
 #include "lcd_utils.h"
 #include "lcd.h"
 #include "gpio.h"
-#include "uart.h"
+#include "usart.h"
 #include "dmx_receiver.h"
 #include "pwm.h"
 #include "adc.h"

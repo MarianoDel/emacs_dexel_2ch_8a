@@ -11,6 +11,7 @@
 #include "hard.h"
 #include "gpio.h"
 #include "tim.h"
+#include "usart.h"
 
 
 #define USE_LED_FOR_BREAK_DETECT
@@ -40,11 +41,11 @@ extern volatile unsigned char dmx_buff_data[];
 extern volatile unsigned char Packet_Detected_Flag;
 extern volatile unsigned short DMX_channel_selected;
 extern volatile unsigned char DMX_channel_quantity;
+extern volatile unsigned char dmx_receive_flag;
 
 
 // Globals ---------------------------------------------------------------------
 volatile unsigned short current_channel_index = 0;
-volatile unsigned char dmx_receive_flag = 0;
 volatile unsigned char data512[SIZEOF_DMX_DATA512];
 volatile unsigned char dmx_timeout_timer = 0;
 volatile unsigned char dmx_exti_enable_flag = 0;
@@ -61,18 +62,21 @@ void DMX_EnableRx (void)
     //enable flag for timeouts
     dmx_exti_enable_flag = 1;
     //enable usart and Rx int
-    USART_RX->CR1 |= USART_CR1_RXNEIE | USART_CR1_UE;
+    Usart1Enable_PA10_250000 ();
+    // USART_RX->CR1 |= USART_CR1_RXNEIE | USART_CR1_UE;
 }
 
 
 void DMX_DisableRx (void)
 {
     //disable flag for timeouts
-    dmx_exti_enable_flag = 1;
+    // dmx_exti_enable_flag = 0;
+    dmx_exti_enable_flag = 1;    //enable for not in dmx automatic detection  
     //disable the Rx int break detect
     EXTIOff ();
     //disable int and driver on usart
-    USART_RX->CR1 &= ~(USART_CR1_RXNEIE | USART_CR1_UE);
+    Usart1Enable_PB7_9600 ();
+    // USART_RX->CR1 &= ~(USART_CR1_RXNEIE | USART_CR1_UE);
 }
 
 

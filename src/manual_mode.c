@@ -13,6 +13,7 @@
 #include "lcd_utils.h"
 #include "dmx_utils.h"
 #include "parameters.h"
+#include "usart.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -56,6 +57,8 @@ extern parameters_typedef mem_conf;
 void ManualMode_MenuReset (void);
 resp_t ManualMode_Menu (unsigned char *, sw_actions_t);
 void DataShow (unsigned char state, unsigned char bright, unsigned char temp, unsigned char ch_mode);
+unsigned char ManualMode_CheckSerial (void);
+
 
 // Module Functions ------------------------------------------------------------
 void ManualMode_UpdateTimers (void)
@@ -99,6 +102,51 @@ resp_t ManualMode (unsigned char * ch_val, sw_actions_t action)
         //end of changing ask for a memory save
         resp = resp_need_to_save;
         
+    }
+    else
+    {
+        unsigned char input_type = ManualMode_CheckSerial();
+        switch (input_type)
+        {
+        case 0:    // do nothing here
+            break;
+
+        case 1:    // low color selected
+            *(ch_val + 0) = 255;
+            *(ch_val + 1) = 0;            
+            
+            DataShow (SHOW_ALL,
+                      *(ch_val + 0),
+                      *(ch_val + 1),
+                      mem_conf.channels_operation_mode);
+
+            resp = resp_change;
+            break;
+
+        case 2:    // middle color selected
+            *(ch_val + 0) = 255;
+            *(ch_val + 1) = 128;
+            
+            DataShow (SHOW_ALL,
+                      *(ch_val + 0),
+                      *(ch_val + 1),
+                      mem_conf.channels_operation_mode);
+            
+            resp = resp_change;
+            break;
+
+        case 3:    // high color selected
+            *(ch_val + 0) = 255;
+            *(ch_val + 1) = 255;
+            
+            DataShow (SHOW_ALL,
+                      *(ch_val + 0),
+                      *(ch_val + 1),
+                      mem_conf.channels_operation_mode);
+            
+            resp = resp_change;
+            break;
+        }
     }
     
     return resp;
@@ -455,4 +503,24 @@ void DataShow (unsigned char state, unsigned char bright, unsigned char temp, un
 }
 
 
+unsigned char ManualMode_CheckSerial (void)
+{
+    if (Usart1HaveData())
+    {
+        char msg [20] = { 0 };
+        Usart1ReadBuffer((unsigned char *) msg, 20);
+        Usart1HaveDataReset();
+
+        if (!strncmp(msg, "B2", sizeof("B2") - 1))
+            return 1;
+
+        if (!strncmp(msg, "B3", sizeof("B3") - 1))
+            return 2;
+
+        if (!strncmp(msg, "B4", sizeof("B4") - 1))
+            return 3;        
+    }
+
+    return 0;
+}
 //--- end of file ---//

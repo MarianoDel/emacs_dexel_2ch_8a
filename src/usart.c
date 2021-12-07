@@ -1,47 +1,51 @@
 //---------------------------------------------
-// ##
 // ## @Author: Med
 // ## @Editor: Emacs - ggtags
 // ## @TAGS:   Global
 // ## @CPU:    STM32F030
 // ##
-// #### UART.C ################################
+// #### USART.C ###############################
 //---------------------------------------------
 
 // Includes --------------------------------------------------------------------
 #include "hard.h"
-#include "uart.h"
+#include "usart.h"
 #include "dmx_receiver.h"
 
 #include <string.h>
 
 
 // Module Configs --------------------------------------------------------------
-#define USART_ONLY_DMX
+// #define USART_WITH_TX
+
+
+// Module Private Types Constants and Macros -----------------------------------
+#define USART_IN_DMX_MODE    0
+#define USART_IN_MANUAL_MODE    1
 
 
 // Externals -------------------------------------------------------------------
-#ifndef USART_ONLY_DMX
-extern volatile unsigned char usart1_have_data;
-#endif
+
 
 // Globals ---------------------------------------------------------------------
-#ifndef USART_ONLY_DMX
+#ifdef USART_WITH_TX
 volatile unsigned char * ptx1;
 volatile unsigned char * ptx1_pckt_index;
-volatile unsigned char * prx1;
 volatile unsigned char tx1buff[SIZEOF_TXDATA];
-volatile unsigned char rx1buff[SIZEOF_RXDATA];
 #endif
 
-// Module Private Types & Macros -----------------------------------------------
+volatile unsigned char * prx1;
+volatile unsigned char rx1buff[SIZEOF_RXDATA];
+
+volatile unsigned char usart1_have_data = 0;
+volatile unsigned char usart1_mode = USART_IN_DMX_MODE;
+
 
 
 // Module Private Functions ----------------------------------------------------
 
 
 // Module Functions ------------------------------------------------------------
-#ifndef USART_ONLY_DMX
 unsigned char Usart1ReadBuffer (unsigned char * bout, unsigned short max_len)
 {
     unsigned int len;
@@ -66,23 +70,41 @@ unsigned char Usart1ReadBuffer (unsigned char * bout, unsigned short max_len)
 
     return (unsigned char) len;
 }
-#endif
+
 
 void USART1_IRQHandler(void)
 {
     unsigned char dummy;
 
-    /* USART in mode Receiver --------------------------------------------------*/
+    // USART in mode Receiver --------------------------------------------------
     if (USART1->ISR & USART_ISR_RXNE)
     {
         dummy = USART1->RDR & 0x0FF;
 
-        DMX_Int_Serial_Receiver_Handler (dummy);
-
+        if (usart1_mode == USART_IN_DMX_MODE)
+            DMX_Int_Serial_Receiver_Handler (dummy);
+        else if (usart1_mode == USART_IN_MANUAL_MODE)
+        {
+            if (prx1 < &rx1buff[SIZEOF_RXDATA - 1])
+            {
+                if (dummy == '\n')
+                {
+                    *prx1 = '\0';
+                    usart1_have_data = 1;
+                }
+                else
+                {
+                    *prx1 = dummy;
+                    prx1++;
+                }
+            }
+            else
+                prx1 = rx1buff;    // fixes blocked with garbage problem
+        }
     }
 
-    /* USART in Transmit mode -------------------------------------------------*/
-#ifndef USART_ONLY_DMX
+    // USART in Transmit mode --------------------------------------------------
+#ifdef USART_WITH_TX
     if (USART1->CR1 & USART_CR1_TXEIE)
     {
         if (USART1->ISR & USART_ISR_TXE)
@@ -110,7 +132,7 @@ void USART1_IRQHandler(void)
 }
 
 
-#ifndef USART_ONLY_DMX
+#ifdef USART_WITH_TX
 void Usart1Send (char * send)
 {
     unsigned char i;
@@ -141,16 +163,14 @@ void Usart1Config(void)
     if (!USART1_CLK)
         USART1_CLK_ON;
 
-#ifndef USART_ONLY_DMX
+#ifdef USART_WITH_TX
     ptx1 = tx1buff;
     ptx1_pckt_index = tx1buff;
-    prx1 = rx1buff;
 #endif
+    
+    prx1 = rx1buff;
 
-    USART1->BRR = USART_250000;
-    USART1->CR2 |= USART_CR2_STOP_1;	//2 bits stop
-//	USART1->CR1 = USART_CR1_RE | USART_CR1_TE | USART_CR1_UE;
-    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//no TX
+    Usart1Enable_PA10_250000 ();
 
     unsigned int temp;
     temp = GPIOA->AFR[1];
@@ -158,9 +178,69 @@ void Usart1Config(void)
     temp |= 0x00000100;    //PA10 -> AF1
     GPIOA->AFR[1] = temp;
 
+    temp = GPIOB->AFR[0];
+    temp &= 0x0FFFFFFF;
+    temp |= 0x00000000;    //PB7 -> AF0
+    GPIOB->AFR[0] = temp;
+
     NVIC_EnableIRQ(USART1_IRQn);
     NVIC_SetPriority(USART1_IRQn, 7);
 }
 
+
+void Usart1Enable_PA10_250000 (void)
+{
+    usart1_mode = USART_IN_DMX_MODE;
+    
+    USART1->CR1 &= ~(USART_CR1_UE);    //disable
+    USART1->BRR = USART_250000;
+    USART1->CR2 |= USART_CR2_STOP_1;	//2 bits stop
+    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//no TX
+
+    unsigned int temp;
+    temp = GPIOA->MODER;    //2 bits por pin
+    temp &= 0xFFCFFFFF;    //PA10 alternative
+    temp |= 0x00200000;    //
+    GPIOA->MODER = temp;
+
+    temp = GPIOB->MODER;    //2 bits por pin
+    temp &= 0xFFFF3FFF;    //PB7 input
+    temp |= 0x00000000;    //
+    GPIOB->MODER = temp;
+}
+
+
+void Usart1Enable_PB7_9600 (void)
+{
+    usart1_mode = USART_IN_MANUAL_MODE;
+    
+    USART1->CR1 &= ~(USART_CR1_UE);    //disable
+    USART1->BRR = USART_9600;
+    USART1->CR2 &= ~(USART_CR2_STOP_1);	//1 bits stop
+    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//no TX
+
+    unsigned int temp;
+    temp = GPIOB->MODER;    //2 bits por pin
+    temp &= 0xFFFF3FFF;    //PB7 alternative
+    temp |= 0x00008000;    //
+    GPIOB->MODER = temp;
+
+    temp = GPIOA->MODER;    //2 bits por pin
+    temp &= 0xFFCFFFFF;    //PA10 input
+    temp |= 0x00000000;    //
+    GPIOA->MODER = temp;
+}
+
+
+unsigned char Usart1HaveData (void)
+{
+    return usart1_have_data;
+}
+
+
+void Usart1HaveDataReset (void)
+{
+    usart1_have_data = 0;
+}
 
 //--- end of file ---//
