@@ -137,24 +137,41 @@ void PWM_Map_Post_Filter (unsigned short dmx_filtered, unsigned short * pwm_ena,
 {
     unsigned short dmx_ena = 0;
     unsigned int dmx_ch = 0;
-    
-    if (dmx_filtered > 64)
+
+    // under dmx 10% dimmer by ena, over 10% dimmer by channel
+    if (dmx_filtered > 409)
     {
-        dmx_ena = 64;
-        dmx_ch = dmx_filtered - 64;
+        dmx_ena = 4096;
+        dmx_ch = dmx_filtered;
+
+        *pwm_ena = dmx_ena;
+        *pwm_ch = dmx_ch;
     }
     else
     {
-        dmx_ena = dmx_filtered;
-        dmx_ch = 0;
-    }
+        dmx_ena = dmx_filtered * 10;
+        dmx_ch = 409;
 
-    // *pwm_ena = dmx_ena * 64;
-    *pwm_ena = dmx_ena << 6;
+        *pwm_ena = dmx_ena;
+        *pwm_ch = dmx_ch;        
+    }
+    // if (dmx_filtered > 64)
+    // {
+    //     dmx_ena = 64;
+    //     dmx_ch = dmx_filtered - 64;
+    // }
+    // else
+    // {
+    //     dmx_ena = dmx_filtered;
+    //     dmx_ch = 0;
+    // }
+
+    // // *pwm_ena = dmx_ena * 64;
+    // *pwm_ena = dmx_ena << 6;
     
-    dmx_ch = dmx_ch * 1016;
-    dmx_ch = dmx_ch / 1000;
-    *pwm_ch = (unsigned short) dmx_ch;
+    // dmx_ch = dmx_ch * 1016;
+    // dmx_ch = dmx_ch / 1000;
+    // *pwm_ch = (unsigned short) dmx_ch;
     
 }
 
