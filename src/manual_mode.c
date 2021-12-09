@@ -51,6 +51,9 @@ extern volatile unsigned short mode_effect_timer;
 extern parameters_typedef mem_conf;
 
 // Globals ---------------------------------------------------------------------
+volatile unsigned short mm_serial_timer = 0;
+volatile unsigned short mm_serial_need_to_save_timer = 0;
+unsigned char mm_serial_need_to_save_flag = 0;
 
 
 // Module Private Functions ----------------------------------------------------
@@ -65,6 +68,13 @@ void ManualMode_UpdateTimers (void)
 {
     if (mm_menu_timer)
         mm_menu_timer--;
+
+    if (mm_serial_timer)
+        mm_serial_timer--;
+
+    if (mm_serial_need_to_save_timer)
+        mm_serial_need_to_save_timer--;
+    
 }
 
 
@@ -112,40 +122,68 @@ resp_t ManualMode (unsigned char * ch_val, sw_actions_t action)
             break;
 
         case 1:    // low color selected
-            *(ch_val + 0) = 255;
-            *(ch_val + 1) = 0;            
+            if (!mm_serial_timer)
+            {
+                *(ch_val + 0) = 255;
+                *(ch_val + 1) = 0;            
             
-            DataShow (SHOW_ALL,
-                      *(ch_val + 0),
-                      *(ch_val + 1),
-                      mem_conf.channels_operation_mode);
+                DataShow (SHOW_ALL,
+                          *(ch_val + 0),
+                          *(ch_val + 1),
+                          mem_conf.channels_operation_mode);
 
-            resp = resp_change;
+                mm_serial_timer = 300;
+                mm_serial_need_to_save_flag = 1;
+                mm_serial_need_to_save_timer = 5000;
+                resp = resp_change;
+            }
             break;
 
         case 2:    // middle color selected
-            *(ch_val + 0) = 255;
-            *(ch_val + 1) = 128;
+            if (!mm_serial_timer)
+            {
+                *(ch_val + 0) = 255;
+                *(ch_val + 1) = 128;
             
-            DataShow (SHOW_ALL,
-                      *(ch_val + 0),
-                      *(ch_val + 1),
-                      mem_conf.channels_operation_mode);
-            
-            resp = resp_change;
+                DataShow (SHOW_ALL,
+                          *(ch_val + 0),
+                          *(ch_val + 1),
+                          mem_conf.channels_operation_mode);
+
+                mm_serial_timer = 300;
+                mm_serial_need_to_save_flag = 1;
+                mm_serial_need_to_save_timer = 5000;                
+                resp = resp_change;
+            }
             break;
 
         case 3:    // high color selected
-            *(ch_val + 0) = 255;
-            *(ch_val + 1) = 255;
+            if (!mm_serial_timer)
+            {
+                *(ch_val + 0) = 255;
+                *(ch_val + 1) = 255;
             
-            DataShow (SHOW_ALL,
-                      *(ch_val + 0),
-                      *(ch_val + 1),
-                      mem_conf.channels_operation_mode);
-            
-            resp = resp_change;
+                DataShow (SHOW_ALL,
+                          *(ch_val + 0),
+                          *(ch_val + 1),
+                          mem_conf.channels_operation_mode);
+
+                mm_serial_timer = 300;
+                mm_serial_need_to_save_flag = 1;
+                mm_serial_need_to_save_timer = 5000;                
+                resp = resp_change;
+            }
             break;
+        }
+    }
+
+    if (mm_serial_need_to_save_flag)
+    {
+        if (!mm_serial_need_to_save_timer)
+        {
+            //end of serial colors change ask for a memory save
+            mm_serial_need_to_save_flag = 0;
+            resp = resp_need_to_save;
         }
     }
     
@@ -503,6 +541,14 @@ void DataShow (unsigned char state, unsigned char bright, unsigned char temp, un
 }
 
 
+
+// get some of this strings, five times, on 50ms separation
+// strcpy(color_send, "red\n");
+// strcpy(color_send, "green\n");
+// strcpy(color_send, "blue\n");
+// strcpy(color_send, "warm\n");
+// strcpy(color_send, "cold\n");
+
 unsigned char ManualMode_CheckSerial (void)
 {
     if (Usart1HaveData())
@@ -511,13 +557,13 @@ unsigned char ManualMode_CheckSerial (void)
         Usart1ReadBuffer((unsigned char *) msg, 20);
         Usart1HaveDataReset();
 
-        if (!strncmp(msg, "B2", sizeof("B2") - 1))
+        if (!strncmp(msg, "cold", sizeof("cold") - 1))
             return 1;
 
-        if (!strncmp(msg, "B3", sizeof("B3") - 1))
+        if (!strncmp(msg, "red", sizeof("red") - 1))
             return 2;
 
-        if (!strncmp(msg, "B4", sizeof("B4") - 1))
+        if (!strncmp(msg, "green", sizeof("green") - 1))
             return 3;        
     }
 

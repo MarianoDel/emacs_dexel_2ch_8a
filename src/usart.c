@@ -61,7 +61,7 @@ unsigned char Usart1ReadBuffer (unsigned char * bout, unsigned short max_len)
     }
     else
     {
-        memcpy(bout, (unsigned char *) rx1buff, len);
+        memcpy(bout, (unsigned char *) rx1buff, max_len);
         len = max_len;
     }
 
@@ -195,7 +195,6 @@ void Usart1Enable_PA10_250000 (void)
     USART1->CR1 &= ~(USART_CR1_UE);    //disable
     USART1->BRR = USART_250000;
     USART1->CR2 |= USART_CR2_STOP_1;	//2 bits stop
-    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//no TX
 
     unsigned int temp;
     temp = GPIOA->MODER;    //2 bits por pin
@@ -207,6 +206,9 @@ void Usart1Enable_PA10_250000 (void)
     temp &= 0xFFFF3FFF;    //PB7 input
     temp |= 0x00000000;    //
     GPIOB->MODER = temp;
+
+    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//no TX
+    
 }
 
 
@@ -217,7 +219,6 @@ void Usart1Enable_PB7_9600 (void)
     USART1->CR1 &= ~(USART_CR1_UE);    //disable
     USART1->BRR = USART_9600;
     USART1->CR2 &= ~(USART_CR2_STOP_1);	//1 bits stop
-    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//no TX
 
     unsigned int temp;
     temp = GPIOB->MODER;    //2 bits por pin
@@ -229,6 +230,9 @@ void Usart1Enable_PB7_9600 (void)
     temp &= 0xFFCFFFFF;    //PA10 input
     temp |= 0x00000000;    //
     GPIOA->MODER = temp;
+
+    USART1->CR1 = USART_CR1_RXNEIE | USART_CR1_RE | USART_CR1_UE;	//no TX
+    
 }
 
 
