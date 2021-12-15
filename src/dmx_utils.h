@@ -14,7 +14,8 @@
 
 
 // Exported Types --------------------------------------------------------------
-
+#define MIDDLE_COLOR_VALUE_TEMP1    121
+#define MIDDLE_COLOR_VALUE_TEMP2    133
 
 // Exported Constants or Macros ------------------------------------------------
 

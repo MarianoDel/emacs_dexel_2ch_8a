@@ -51,23 +51,37 @@ void Percentage (unsigned char dmx_value, unsigned char * val_int, unsigned char
 
 void ColorTemp1 (unsigned char dmx_value, unsigned short * temp)
 {
-    unsigned int calc = 0;
+    if (dmx_value != MIDDLE_COLOR_VALUE_TEMP1)
+    {
+        unsigned int calc = 0;
 
-    calc = dmx_value * 3800;    // 6500 - 2700
-    calc = calc / 255;
-    calc = calc + 2700;
-    *temp = (unsigned short) calc;
+        calc = dmx_value * 3800;    // 6500 - 2700
+        calc = calc / 255;
+        calc = calc + 2700;
+        *temp = (unsigned short) calc;
+    }
+    else
+    {
+        *temp = 4500;
+    }
 }
 
 
 void ColorTemp2 (unsigned char dmx_value, unsigned short * temp)
 {
-    unsigned int calc = 0;
+    if (dmx_value != MIDDLE_COLOR_VALUE_TEMP2)
+    {
+        unsigned int calc = 0;
 
-    calc = dmx_value * 2500;    // 5700 - 3200
-    calc = calc / 255;
-    calc = calc + 3200;
-    *temp = (unsigned short) calc;
+        calc = dmx_value * 2500;    // 5700 - 3200
+        calc = calc / 255;
+        calc = calc + 3200;
+        *temp = (unsigned short) calc;
+    }
+    else
+    {
+        *temp = 4500;
+    }
 }
 
     

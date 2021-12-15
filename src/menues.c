@@ -13,6 +13,7 @@
 #include "lcd_utils.h"
 #include "temperatures.h"
 #include "adc.h"
+#include "hard.h"
 
 #include <stdio.h>
 
@@ -22,14 +23,16 @@ typedef enum {
     MENU_SHOW_OPERATION_MODE,
     MENU_SHOW_MAX_CURRENT,
     MENU_SHOW_TEMP,
-    MENU_SHOW_CURRENT_TEMP,    
+    MENU_SHOW_CURRENT_TEMP,
+    MENU_SHOW_VERSION,
     MENU_SHOW_END_CONF,
     
     MENU_CONF_OPERATION_MODE,
     MENU_CONF_MAX_CURRENT,
     MENU_CONF_TEMP,
     MENU_CONF_CURRENT_TEMP,
-    MENU_CONF_CURRENT_TEMP_1,        
+    MENU_CONF_CURRENT_TEMP_1,
+    MENU_CONF_VERSION,
     MENU_END_CONF
 
 } menu_state_t;
@@ -70,7 +73,7 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
     resp_t resp = resp_continue;
     unsigned char onoff = 0;
     unsigned short fchannel = 0;
-    char s_temp[17] = { 0 };    //16 chars per line + '\0'    
+    char s_temp[17] = { 0 };    //16 chars per line + '\0'
 
     switch (menu_state)
     {
@@ -158,14 +161,30 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             menu_state = MENU_SHOW_TEMP;
 
         if (resp == resp_change_all_up)
-            menu_state = MENU_SHOW_END_CONF;
+            menu_state = MENU_SHOW_VERSION;
         
         if (resp == resp_selected)
         {
             current_temp = Temp_Channel;
             menu_state = MENU_CONF_CURRENT_TEMP;
         }
+        break;
 
+    case MENU_SHOW_VERSION:
+        
+        resp = LCD_ShowSelectv2((const char *) "Current Version ",                                
+                                sw_action);
+
+        if (resp == resp_change)
+            menu_state = MENU_SHOW_CURRENT_TEMP;
+
+        if (resp == resp_change_all_up)
+            menu_state = MENU_SHOW_END_CONF;
+        
+        if (resp == resp_selected)
+        {
+            menu_state = MENU_CONF_VERSION;
+        }
         break;
         
     case MENU_SHOW_END_CONF:
@@ -174,7 +193,7 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
                                 sw_action);
 
         if (resp == resp_change)
-            menu_state = MENU_SHOW_TEMP;
+            menu_state = MENU_SHOW_VERSION;
 
         if (resp == resp_change_all_up)
             menu_state = MENU_SHOW_OPERATION_MODE;
@@ -291,6 +310,21 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
         }
         break;
         
+    case MENU_CONF_VERSION:
+        resp = LCD_ShowBlink (HARD_GetHardwareVersion(),
+                              HARD_GetSoftwareVersion(),
+                              2,
+                              BLINK_NO);
+
+        if (resp == resp_finish)
+        {
+            // if (sw_action == selection_enter)
+                menu_state = MENU_SHOW_VERSION;
+                
+            resp = resp_continue;
+        }
+        break;
+
     case MENU_END_CONF:
         resp = LCD_ShowBlink ("   Saving new   ",
                               "    params...   ",

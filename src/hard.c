@@ -172,6 +172,34 @@ sw_actions_t CheckActions (void)
     
 }
 
+#if defined HARDWARE_VERSION_1_2
+char hardware_version [] = {"Hardware: 1.2   "};
+#elif defined HARDWARE_VERSION_1_1
+char hardware_version [] = {"Hardware: 1.1   "};
+#elif defined HARDWARE_VERSION_1_0
+char hardware_version [] = {"Hardware: 1.0   "};
+#else
+#error "No hard version selected on hard.c"
+#endif
+char * HARD_GetHardwareVersion (void)
+{
+    return hardware_version;
+}
+
+#if defined SOFTWARE_VERSION_1_2
+char software_version [] = {"Software: 1.2   "};
+#elif defined SOFTWARE_VERSION_1_1
+char software_version [] = {"Software: 1.1   "};
+#elif defined SOFTWARE_VERSION_1_0
+char software_version [] = {"Software: 1.0   "};
+#else
+#error "No soft version selected on hard.c"
+#endif
+char * HARD_GetSoftwareVersion (void)
+{
+    return software_version;
+}
+
 //--- end of file ---//
 
 

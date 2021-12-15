@@ -53,7 +53,7 @@ typedef struct parameters {
 
     //-- Channels Operation Mode ----    //11
     unsigned char channels_operation_mode;
-    
+
     // unsigned char dummy1;
     // unsigned char dummy2;          
     // unsigned char dummy3;       

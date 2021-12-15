@@ -50,6 +50,7 @@ typedef enum {
     MAIN_IN_OVERTEMP,
     MAIN_IN_OVERCURRENT,
     MAIN_ENTERING_MAIN_MENU,
+    MAIN_ENTERING_MAIN_MENU2,    
     MAIN_IN_MAIN_MENU
     
 } main_state_e;
@@ -420,21 +421,34 @@ int main(void)
             break;
             
         case MAIN_ENTERING_MAIN_MENU:
-            //deshabilitar salidas hardware
+            // hardware outputs disable
             DMX_DisableRx();
 
             enable_outputs_by_int = 0;
             for (unsigned char n = 0; n < sizeof(channels_values_int); n++)
                 channels_values_int[n] = 0;
             
-            //reseteo canales
+            // channels reset
             PWMChannelsReset();
 
-            MENU_Main_Reset();
-            
+            // clean display
+            LCD_Writel1(s_blank);
+            LCD_Writel2(s_blank);
+            Wait_ms(250);
             main_state++;
             break;
 
+        case MAIN_ENTERING_MAIN_MENU2:
+            if (Check_SW_SEL() < SW_HALF)
+                main_state = MAIN_HARD_INIT;
+            else if ((Check_SW_UP() > SW_NO) &&
+                     (Check_SW_DWN() > SW_NO))
+            {
+                MENU_Main_Reset();
+                main_state++;
+            }
+            break;
+            
         case MAIN_IN_MAIN_MENU:
             action = CheckActions();
             

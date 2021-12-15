@@ -24,6 +24,9 @@ extern volatile unsigned short show_select_timer;
 sw_actions_t switch_actions = selection_none;
 parameters_typedef configurations;
 
+// for the hard.h inclusion
+unsigned short adc_ch [2];
+
 
 // Globals ---------------------------------------------------------------------
 static GMutex mutex;
@@ -136,5 +139,17 @@ unsigned char Check_SW_UP (void)
     return a;
 }
 
+// -- Mocked Functions ---------------------------------------------------------
+char * HARD_GetHardwareVersion (void)
+{
+    static char hard [] = {"Hardware: 1.2   "};
+    return hard;
+}
+
+char * HARD_GetSoftwareVersion (void)
+{
+    static char soft [] = {"Software: 1.2   "};
+    return soft;
+}
 
 //--- end of file ---//

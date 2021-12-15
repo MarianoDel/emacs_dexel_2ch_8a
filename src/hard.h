@@ -21,7 +21,7 @@
 
 
 // #define SOFTWARE_VERSION_1_1
-#define SOFTWARE_VERSION_1_0
+#define SOFTWARE_VERSION_1_0    // first version
 
 
 //---- Features Configuration -----------------
@@ -306,6 +306,8 @@ resp_sw_t Check_SW_SEL (void);
 void UpdateSwitches (void);
 sw_actions_t CheckActions (void);
 
+char * HARD_GetHardwareVersion (void);
+char * HARD_GetSoftwareVersion (void);
 
 #endif /* _HARD_H_ */
 

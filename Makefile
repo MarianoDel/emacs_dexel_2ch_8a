@@ -274,7 +274,7 @@ tests_lcd_manual_mode:
 tests_lcd_main_menu:
 	# first compile common modules (modules to test and dependencies)
 	gcc -c src/lcd_utils.c -I. $(INCDIR)
-	gcc -c src/menues.c -I. $(INCDIR)
+	gcc -c src/menues.c -I. $(INCDIR) -DSTM32F030
 	gcc -c src/temperatures.c -I. $(INCDIR)
 	# the module that implements tests_lcd_application.h functions
 	gcc -c `pkg-config --cflags gtk+-3.0` src/tests_lcd_main_menu.c -o tests_lcd_main_menu.o

@@ -143,8 +143,12 @@ resp_t ManualMode (unsigned char * ch_val, sw_actions_t action)
             if (!mm_serial_timer)
             {
                 *(ch_val + 0) = 255;
-                *(ch_val + 1) = 128;
-            
+                if (mem_conf.channels_operation_mode == CCT1_MODE)
+                    *(ch_val + 1) = MIDDLE_COLOR_VALUE_TEMP1;
+
+                if (mem_conf.channels_operation_mode == CCT2_MODE)
+                    *(ch_val + 1) = MIDDLE_COLOR_VALUE_TEMP2;
+                
                 DataShow (SHOW_ALL,
                           *(ch_val + 0),
                           *(ch_val + 1),
@@ -539,7 +543,6 @@ void DataShow (unsigned char state, unsigned char bright, unsigned char temp, un
         break;
     }
 }
-
 
 
 // get some of this strings, five times, on 50ms separation
