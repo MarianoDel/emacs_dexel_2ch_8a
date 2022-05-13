@@ -105,3 +105,7 @@
    CLOSED: [2021-09-21 Tue 15:47]
 
 * TODO Blanquear contadores de errores con ena
+
+* Modificacion por panel frontal con mal serigrafia 13-05-22
+** cambiar SW_UP por SW_DWN
+   - cambio de version de soft a 1.1

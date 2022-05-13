@@ -20,15 +20,17 @@
 // #define HARDWARE_VERSION_1_0    //micro F030K6T6
 
 
-// #define SOFTWARE_VERSION_1_1
-#define SOFTWARE_VERSION_1_0    // first version
+#define SOFTWARE_VERSION_1_1    // posibility for change sw up for sw dwn (harcoded)
+// #define SOFTWARE_VERSION_1_0    // first version
 
 
-//---- Features Configuration -----------------
+//---- Features Configuration --------------------
 #define USE_TEMP_PROT
 // #define USE_CTROL_FAN_ALWAYS_ON
 // #define USE_F_CHNLS_FOR_ENABLE        //this one or the later
 // #define USE_F_CHNLS_FOR_FREQ_DETECT    //this one or the former
+#define USE_SW_UP_FOR_SW_DWN    // front panel error, change UP for DWN
+
 
 #define USE_OVERCURRENT_PROT
 
@@ -39,7 +41,9 @@
 // #define USE_
 
 
-//---- End of Features Configuration ----------
+//---- End of Features Configuration -------------
+
+//--- Sanity Checks ------------------------------
 #if (defined HARDWARE_VERSION_1_1) && (defined USE_OVERCURRENT_PROT)
 #ifndef USE_F_CHNLS_FOR_FREQ_DETECT
 #error "must use f channels for detect overcurrent"
@@ -51,6 +55,7 @@
 #error "f channels not used for freq nor channels on version 1.2"
 #endif
 #endif
+//--- End of Sanity Checks -----------------------
 
 // Exported Pinout Names -------------------------------------------------------
 #ifdef HARDWARE_VERSION_1_2
@@ -114,11 +119,19 @@
 //GPIOB pin3
 #define SW_SEL    ((GPIOB->IDR & 0x0008) == 0)
 
+#ifdef USE_SW_UP_FOR_SW_DWN
+//GPIOB pin4
+#define SW_DWN    ((GPIOB->IDR & 0x0010) == 0)
+
+//GPIOB pin5
+#define SW_UP    ((GPIOB->IDR & 0x0020) == 0)
+#else
 //GPIOB pin4
 #define SW_UP    ((GPIOB->IDR & 0x0010) == 0)
 
 //GPIOB pin5
 #define SW_DWN    ((GPIOB->IDR & 0x0020) == 0)
+#endif
 
 //GPIOB pin6
 #define CTRL_FAN    ((GPIOB->ODR & 0x0040) != 0)
