@@ -56,7 +56,10 @@ unsigned char Temp_TempToDegreesExtended (unsigned short temp)
     calc = temp * dy;
     calc = calc / dx;
 
-    calc = calc - TEMP_DEG_OFFSET + 13;
+    if (calc > (TEMP_DEG_OFFSET - 13))    //seria mayor a 0 grados
+        calc = calc - TEMP_DEG_OFFSET + 13;    //prob +13 es la dif entre LM335 y LM35
+    else
+        calc = 0;
 
     return (unsigned char) calc;
 }

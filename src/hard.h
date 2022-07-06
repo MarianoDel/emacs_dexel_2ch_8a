@@ -20,7 +20,8 @@
 // #define HARDWARE_VERSION_1_0    //micro F030K6T6
 
 
-#define SOFTWARE_VERSION_1_1    // posibility for change sw up for sw dwn (harcoded)
+#define SOFTWARE_VERSION_1_2    // fix leds overcurrent reseting the errors counters
+// #define SOFTWARE_VERSION_1_1    // posibility for change sw up for sw dwn (harcoded)
 // #define SOFTWARE_VERSION_1_0    // first version
 
 

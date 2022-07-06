@@ -104,7 +104,9 @@
 ** DONE Medir frequencia de trabajo con input capture en F_CHNLS
    CLOSED: [2021-09-21 Tue 15:47]
 
-* TODO Blanquear contadores de errores con ena
+* Blanquear contadores de errores con ena
+** DONE Lo cambie en el salto de overcurrent
+   CLOSED: [2022-07-06 Wed 11:26]
 
 * Modificacion por panel frontal con mal serigrafia 13-05-22
 ** cambiar SW_UP por SW_DWN
