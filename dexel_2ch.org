@@ -109,3 +109,13 @@
 * Modificacion por panel frontal con mal serigrafia 13-05-22
 ** cambiar SW_UP por SW_DWN
    - cambio de version de soft a 1.1
+
+* Mejora por salto de overcurrent 06-07-22
+** La rutina de int en F_CHNLS tiene los siguientes errores
+   - no detecta sobrecorriente si la senial esta fija en 0 o 3.3V
+     puede tener sobrecorriente y no detectarlo por no tener variacion en IC
+
+   - no detecta sobrecorriente si ENA_CH no esta full activo
+     puede tener sobrecorriente en el momento de ENA_CH on y no lo revisa
+
+*** agrego un reset de errores para solucionar esto en la int IC

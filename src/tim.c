@@ -228,6 +228,9 @@ void TIM1_CC_IRQHandler (void)
             // if (interval > 28)    //28us 35.7KHz
             if (interval > 224)    //28us 35.7KHz * 8 prescaler         
                 f_channel_2_int++;
+            else if (f_channel_2_int)
+                f_channel_2_int--;
+            
         }
         else
             f_channel_2_int = 0;
@@ -257,6 +260,9 @@ void TIM1_CC_IRQHandler (void)
             // if (interval > 28)    //28us 35.7KHz
             if (interval > 224)    //28us 35.7KHz * 8 prescaler                     
                 f_channel_4_int++;
+            else if (f_channel_4_int)
+                f_channel_4_int--;
+            
         }
         else
             f_channel_4_int = 0;
@@ -292,6 +298,8 @@ void TIM1_CC_IRQHandler (void)
         // if (interval > 28)    //28us 35.7KHz
         if (interval > 224)    //28us 35.7KHz * 8 prescaler         
             f_channel_2_int++;
+        else if (f_channel_2_int)
+            f_channel_2_int--;
 
         TIM1->SR &= ~(TIM_SR_CC2IF | TIM_SR_CC2OF);
     }
@@ -315,6 +323,8 @@ void TIM1_CC_IRQHandler (void)
         // if (interval > 28)    //28us 35.7KHz
         if (interval > 224)    //28us 35.7KHz * 8 prescaler                     
             f_channel_4_int++;
+        else if (f_channel_4_int)
+            f_channel_4_int--;
 
         TIM1->SR &= ~(TIM_SR_CC4IF | TIM_SR_CC4OF);
     }
