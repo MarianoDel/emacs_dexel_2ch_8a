@@ -82,7 +82,7 @@ void GPIO_Config (void)
     if (!GPIOA_CLK)
         GPIOA_CLK_ON;
 
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
     temp = GPIOA->MODER;    //2 bits por pin
     temp &= 0x3C000000;    //PA0 - PA3 output; PA4 analog; PA5 output; PA6 - PA7 alternative
     temp |= 0x41A8A755;    //PA8 input exti; PA9 PA10 PA11 alternative; PA12 PA15 output
@@ -136,7 +136,7 @@ void GPIO_Config (void)
     if (!GPIOB_CLK)
         GPIOB_CLK_ON;
 
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
     temp = GPIOB->MODER;    //2 bits por pin
     // temp &= 0xFFFF0030;    //PB0 PB1 alternative; PB3 - PB5 input; PB6 output; PB7 alternative
     // temp |= 0x0000900A;        
@@ -190,7 +190,7 @@ void GPIO_Config (void)
     if (!GPIOF_CLK)
         GPIOF_CLK_ON;
 
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
     temp = GPIOF->MODER;
     temp &= 0xFFFFFFF0;    //PF0 PF1 output
     temp |= 0x00000005;
@@ -264,5 +264,14 @@ inline void EXTIOn (void)
 {
 	EXTI->IMR |= 0x00000100;
 }
+
+
+#if (!defined HARDWARE_VERSION_1_3) && \
+    (!defined HARDWARE_VERSION_1_2) && \
+    (!defined HARDWARE_VERSION_1_1) && \
+    (!defined HARDWARE_VERSION_1_0)
+#error "Not hardware defined on gpio.c!"
+#endif
+
 
 //--- end of file ---//

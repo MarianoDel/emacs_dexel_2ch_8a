@@ -30,7 +30,7 @@
 #define PWM_Update_CH1(X)    Update_TIM3_CH1(X)
 #define PWM_Update_CH2(X)    Update_TIM3_CH2(X)
 
-#if (defined HARDWARE_VERSION_1_2)
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
 #define EnablePreload_ENA1    EnablePreload_TIM3_CH3
 #define EnablePreload_ENA2    EnablePreload_TIM3_CH4
 

@@ -172,7 +172,9 @@ sw_actions_t CheckActions (void)
     
 }
 
-#if defined HARDWARE_VERSION_1_2
+#if defined HARDWARE_VERSION_1_3
+char hardware_version [] = {"Hardware: 1.3   "};
+#elif defined HARDWARE_VERSION_1_2
 char hardware_version [] = {"Hardware: 1.2   "};
 #elif defined HARDWARE_VERSION_1_1
 char hardware_version [] = {"Hardware: 1.1   "};
@@ -199,6 +201,14 @@ char * HARD_GetSoftwareVersion (void)
 {
     return software_version;
 }
+
+
+#if (!defined HARDWARE_VERSION_1_3) && \
+    (!defined HARDWARE_VERSION_1_2) && \
+    (!defined HARDWARE_VERSION_1_1) && \
+    (!defined HARDWARE_VERSION_1_0)
+#error "Not hardware defined on hard.c!"
+#endif
 
 //--- end of file ---//
 

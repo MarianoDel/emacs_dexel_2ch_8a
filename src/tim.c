@@ -109,7 +109,7 @@ void TIM_1_Init (void)
     if (!RCC_TIM1_CLK)
         RCC_TIM1_CLK_ON;
 
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
     //Configuracion del timer.
     TIM1->CR1 = 0x00;		//clk int / 1; upcounting
     // TIM1->CR2 |= TIM_CR2_MMS_1;		//UEV -> TRG0
@@ -201,7 +201,7 @@ void TIM_1_Init (void)
 }
 
 
-#if (defined HARDWARE_VERSION_1_2) && (defined USE_OVERCURRENT_PROT)
+#if ((defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)) && (defined USE_OVERCURRENT_PROT)
 volatile unsigned short capture_ch2 = 0;
 volatile unsigned short capture_ch4 = 0;
 void TIM1_CC_IRQHandler (void)
@@ -351,7 +351,7 @@ void TIM_3_Init (void)
     // TIM3->SMCR |= TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1;	//trigger: trigger mode; link timer 1    
     TIM3->CCMR1 = 0x6060;      //CH1, CH2 output PWM mode 1 (channel active TIM3->CNT < TIM3->CCR1)
     TIM3->CCER |= TIM_CCER_CC2E | TIM_CCER_CC1E;    //CH2 y CH1 enable on pin direct polarity    
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
     TIM3->CCMR2 = 0x6060;      //CH3, CH4 output PWM mode 1 (channel active TIM3->CNT < TIM3->CCR1)
     // TIM3->CCMR2 = 0x0000;
     TIM3->CCER |= TIM_CCER_CC4E | TIM_CCER_CC3E;    //CH4 y CH3 enable on pin direct polarity    
@@ -374,7 +374,7 @@ void TIM_3_Init (void)
     temp |= 0x11000000;    //PA7 -> AF1; PA6 -> AF1
     GPIOA->AFR[0] = temp;
 
-#ifdef HARDWARE_VERSION_1_2    
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
     temp = GPIOB->AFR[0];
     temp &= 0xFFFFFF00;	
     temp |= 0x00000011;    //PB1 -> AF1; PB0 -> AF1
@@ -518,5 +518,13 @@ void TIM16Disable (void)
 // 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 // 	NVIC_Init(&NVIC_InitStructure);
 // }
+
+
+#if (!defined HARDWARE_VERSION_1_3) && \
+    (!defined HARDWARE_VERSION_1_2) && \
+    (!defined HARDWARE_VERSION_1_1) && \
+    (!defined HARDWARE_VERSION_1_0)
+#error "Not hardware defined on tim.c!"
+#endif
 
 //--- end of file ---//

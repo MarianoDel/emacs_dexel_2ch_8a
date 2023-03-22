@@ -430,7 +430,7 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
                             &ena1_pwm,
                             &ch1_pwm);
 
-#if (defined HARDWARE_VERSION_1_2)
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
         PWM_Update_ENA1(ena1_pwm);
 #elif (defined HARDWARE_VERSION_1_1)
 #ifdef USE_F_CHNLS_FOR_ENABLE
@@ -451,7 +451,7 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
                             &ena2_pwm,
                             &ch2_pwm);
 
-#if (defined HARDWARE_VERSION_1_2)
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
         PWM_Update_ENA2(ena2_pwm);
 #elif (defined HARDWARE_VERSION_1_1)
 #ifdef USE_F_CHNLS_FOR_ENABLE
@@ -490,6 +490,14 @@ void FiltersAndOffsets_Filters_Reset (void)
     MA32_U16Circular_Reset(&st_ena1);
     MA32_U16Circular_Reset(&st_ena2);
 }
+
+
+#if (!defined HARDWARE_VERSION_1_3) && \
+    (!defined HARDWARE_VERSION_1_2) && \
+    (!defined HARDWARE_VERSION_1_1) && \
+    (!defined HARDWARE_VERSION_1_0)
+#error "Not hardware defined on filters_and_offsets.c!"
+#endif
 
 
 

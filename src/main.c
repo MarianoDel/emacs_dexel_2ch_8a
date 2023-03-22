@@ -146,7 +146,7 @@ int main(void)
     
     // Timer for overcurrent protection
     TIM_1_Init ();
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
     PWM_Update_ENA1 (0);
     PWM_Update_ENA2 (0);
     EnablePreload_ENA1;

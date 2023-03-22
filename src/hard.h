@@ -15,7 +15,8 @@
 
 //-- Defines For Configuration -------------------
 //---- Configuration for Hardware Versions -------
-#define HARDWARE_VERSION_1_2    // cambio pines para aceptar placa colores
+#define HARDWARE_VERSION_1_3    // change on footprint and china manufacturer
+// #define HARDWARE_VERSION_1_2    // cambio pines para aceptar placa colores
 // #define HARDWARE_VERSION_1_1    //fuente 48V->12V en placa control
 // #define HARDWARE_VERSION_1_0    //micro F030K6T6
 
@@ -51,15 +52,22 @@
 #endif
 #endif
 
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
 #if (defined USE_F_CHNLS_FOR_FREQ_DETECT) || (defined USE_F_CHNLS_FOR_ENABLE)
 #error "f channels not used for freq nor channels on version 1.2"
 #endif
 #endif
+
+#if (!defined HARDWARE_VERSION_1_3) && \
+    (!defined HARDWARE_VERSION_1_2) && \
+    (!defined HARDWARE_VERSION_1_1) && \
+    (!defined HARDWARE_VERSION_1_0)
+#error "Not hardware defined on hard.h!"
+#endif
 //--- End of Sanity Checks -----------------------
 
 // Exported Pinout Names -------------------------------------------------------
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
 //GPIOF pin0
 #define LCD_E    ((GPIOF->ODR & 0x0001) != 0)
 #define LCD_E_ON    (GPIOF->BSRR = 0x00000001)

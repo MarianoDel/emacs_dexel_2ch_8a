@@ -29,7 +29,7 @@
 // Module Functions ------------------------------------------------------------
 void PWMChannelsReset (void)
 {
-#ifdef HARDWARE_VERSION_1_2
+#if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
     PWM_Update_CH1(DUTY_NONE);
     PWM_Update_CH2(DUTY_NONE);
     PWM_Update_ENA1(DUTY_NONE);
@@ -176,5 +176,11 @@ void PWM_Map_Post_Filter (unsigned short dmx_filtered, unsigned short * pwm_ena,
 }
 
 
+#if (!defined HARDWARE_VERSION_1_3) && \
+    (!defined HARDWARE_VERSION_1_2) && \
+    (!defined HARDWARE_VERSION_1_1) && \
+    (!defined HARDWARE_VERSION_1_0)
+#error "Not hardware defined on pwm.c!"
+#endif
 
 //--- end of file ---//
