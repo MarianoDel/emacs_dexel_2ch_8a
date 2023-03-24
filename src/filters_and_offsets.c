@@ -430,6 +430,13 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
                             &ena1_pwm,
                             &ch1_pwm);
 
+#ifdef USE_TEST_ON_ENA_CH1
+        if (ch1_pwm > 3600)
+            ch1_pwm = 3600;
+        
+        PWM_Update_ENA1(ch1_pwm);
+        PWM_Update_CH1(DUTY_ALWAYS);
+#else        
 #if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
         PWM_Update_ENA1(ena1_pwm);
 #elif (defined HARDWARE_VERSION_1_1)
@@ -446,11 +453,19 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
 #endif
         
         PWM_Update_CH1(ch1_pwm);
-
+#endif    //USE_TEST_ON_ENA_CH1
+        
         PWM_Map_Post_Filter (limit_output[1],
                             &ena2_pwm,
                             &ch2_pwm);
 
+#ifdef USE_TEST_ON_ENA_CH2
+        if (ch2_pwm > 3600)
+            ch2_pwm = 3600;
+        
+        PWM_Update_ENA2(ch2_pwm);
+        PWM_Update_CH2(DUTY_ALWAYS);
+#else        
 #if (defined HARDWARE_VERSION_1_3) || (defined HARDWARE_VERSION_1_2)
         PWM_Update_ENA2(ena2_pwm);
 #elif (defined HARDWARE_VERSION_1_1)
@@ -468,6 +483,7 @@ void FiltersAndOffsets_Post_Mapping_SM (volatile unsigned char * ch_dmx_val)
 #endif
 
         PWM_Update_CH2(ch2_pwm);
+#endif    //USE_TEST_ON_ENA_CH2
         
         filters_sm++;
         break;

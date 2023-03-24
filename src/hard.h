@@ -33,8 +33,9 @@
 // #define USE_F_CHNLS_FOR_FREQ_DETECT    //this one or the former
 #define USE_SW_UP_FOR_SW_DWN    // front panel error, change UP for DWN
 
-
-#define USE_OVERCURRENT_PROT
+// #define USE_TEST_ON_ENA_CH1
+// #define USE_TEST_ON_ENA_CH2    //ch2 with pwm in ena connection LD always on
+#define USE_OVERCURRENT_PROT    // protection on less than 40khz detection
 
 // -- Freq for the timers
 // #define USE_PWM_16000_FREQ_1KHZ

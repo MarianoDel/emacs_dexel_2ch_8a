@@ -117,24 +117,7 @@ int main(void)
         SysTickError();
 
     // Begin Hardware Tests - check test_functions module
-    // TF_Led();    //simple led functionality
-    // TF_ENA_CH1_ENA_CH2_SW_SEL ();
-    // TF_SW_UP();
-    // TF_SW_DWN();
-    // TF_SW_SEL();    
-    // TF_lcdE();
-    // TF_lcdRS();
-    // TF_lcdData();
-    // TF_lcdBklight();
-    // TF_lcdBlink();
-    // TF_lcdScroll();
-    // TF_Dmx_Packet ();
-    // TF_Dmx_Packet_Data ();
-    // TF_Pwm_Channels ();
-    // TF_F_Channels_As_Pwm ();
-    // TF_F_Channels_As_ICapture_2 ();
-    // TF_F_Channels_As_ICapture_4 ();        
-    // TF_Temp_Channel ();    
+    TF_Hardware_Tests ();
     // End Hard Tests -------------------------------
 
     // Hardware Inits. ---------------------------
