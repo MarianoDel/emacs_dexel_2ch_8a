@@ -30,35 +30,37 @@ typedef enum {
 
 
 //-- Memory Struct to Save --------------------
+// Beware this struct must be 4 bytes align and be multiple of 8
 typedef struct parameters {
 
     //-- Program Type ----
     unsigned char program_type;
 
     //-- DMX mode configs. ----                  
-    unsigned short dmx_first_channel;
-    unsigned char dmx_channel_quantity;	
+    unsigned char dmx_channel_quantity;
+    unsigned char dummy1 [2];
+    unsigned short dmx_first_channel;    // 2 bytes if its aligned to 4
 
-    //-- For Manual mode settings ----   //4
+    //-- For Manual mode settings ----   //6
     unsigned char fixed_channels [2];
 
-    //-- For Max Current Channels settings ----   //6
+    //-- For Max Current Channels settings ----   //8
     unsigned char max_current_channels [2];    
     
-    //-- For Temperature Protection ----    //8
-    unsigned short temp_prot;
-
     //-- Current Set ----    //10
     unsigned char current_eight_amps;
 
     //-- Channels Operation Mode ----    //11
     unsigned char channels_operation_mode;
 
-    // unsigned char dummy1;
-    // unsigned char dummy2;          
+    //-- For Temperature Protection ----    //12
+    unsigned short temp_prot;    // 2 bytes if its aligned to 4
+    unsigned char temp_prot_deg;
+    // unsigned char dummy2 [2];
+    unsigned char dummy2;          
     // unsigned char dummy3;       
 
-    //-- End of Struct check for 4 bytes alignment ---- //12
+    //-- End of Struct check for 8 bytes alignment ---- //16
 
 } parameters_typedef;
 

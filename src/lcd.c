@@ -9,10 +9,16 @@
 
 #include "lcd.h"
 #include "lcd_hard_defs.h"
-#include "stm32f0xx.h"
 #include "hard.h"
 #include "tim.h"
 
+#ifdef STM32F030
+#include "stm32f0xx.h"
+#endif
+
+#ifdef STM32G030xx
+#include "stm32g0xx.h"
+#endif
 
 
 #ifdef WITH_STATE_MACHINE

@@ -262,7 +262,7 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
         break;
 
     case MENU_CONF_TEMP:
-
+#ifdef TEMP_SENSOR_LM335
         fchannel = Temp_TempToDegrees(configurations->temp_prot);
 
         resp = LCD_EncoderChange("Max temp:       ",
@@ -278,7 +278,25 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
             menu_state = MENU_SHOW_TEMP;
             resp = resp_continue;
         }
+#endif
+#ifdef TEMP_SENSOR_NTC1K
+        fchannel = configurations->temp_prot_deg;
 
+        resp = LCD_EncoderChange("Max temp:       ",
+                                 &fchannel,
+                                 TEMP_DEG_MIN,
+                                 TEMP_DEG_MAX,
+                                 sw_action);
+                                     
+        if (resp == resp_finish)
+        {
+            configurations->temp_prot_deg = (unsigned char) fchannel;
+            configurations->temp_prot = Temp_DegreesToTemp(fchannel);
+
+            menu_state = MENU_SHOW_TEMP;
+            resp = resp_continue;
+        }
+#endif
         break;
 
     case MENU_CONF_CURRENT_TEMP:

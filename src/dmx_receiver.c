@@ -13,6 +13,13 @@
 #include "tim.h"
 #include "usart.h"
 
+#ifdef STM32F030
+#include "stm32f0xx.h"
+#endif
+
+#ifdef STM32G030xx
+#include "stm32g0xx.h"
+#endif
 
 #define USE_LED_FOR_BREAK_DETECT
 // Internal Configs ------------------------------------------------------------

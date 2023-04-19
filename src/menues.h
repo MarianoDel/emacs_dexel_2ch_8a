@@ -26,7 +26,7 @@
 // Exported Functions ----------------------------------------------------------
 void MENU_Main_Reset (void);
 resp_t MENU_Main (mem_bkp_t *, sw_actions_t);
-
+unsigned char ConvertCurrentFromMemory (mem_bkp_t * config);
     
 #endif    /* _MENUES_H_ */
 
