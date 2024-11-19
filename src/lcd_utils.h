@@ -189,6 +189,11 @@ resp_t LCD_EncoderShowSelect3 (const char * p_text1,
                                sw_actions_t sw_action,
                                unsigned char * selected_line);
 
+resp_t LCD_EncoderChange_Decimals (char * primer_renglon,
+                                   unsigned char * p_orig_int, unsigned char * p_orig_dec,
+                                   unsigned char min_val_int, unsigned char min_val_dec,    //ej 1.1
+                                   unsigned char max_val_int, unsigned char max_val_dec,
+                                   sw_actions_t actions);
 
 void LCD_BigNumbersInit (void);
 void LCD_BigNumbers (unsigned char, unsigned char);

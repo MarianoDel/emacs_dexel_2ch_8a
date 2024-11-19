@@ -56,11 +56,18 @@ typedef struct parameters {
     //-- For Temperature Protection ----    //12
     unsigned short temp_prot;    // 2 bytes if its aligned to 4
     unsigned char temp_prot_deg;
-    // unsigned char dummy2 [2];
-    unsigned char dummy2;          
+
+    //-- For new channels current ---- //15
+    unsigned char current_int;
+    unsigned char current_dec;
+
+    //-- Hardware config ---- //17
+    unsigned char encoder_direction;
+    unsigned char dummy2 [6];
+    // unsigned char dummy2;          
     // unsigned char dummy3;       
 
-    //-- End of Struct check for 8 bytes alignment ---- //16
+    //-- End of Struct check for 8 bytes alignment ---- //24
 
 } parameters_typedef;
 

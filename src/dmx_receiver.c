@@ -160,9 +160,6 @@ void DMX_Int_Break_Handler (void)
                 TIM_BREAK->CNT = 0;
                 TIM_BREAK->CR1 |= 0x0001;
                 dmx_signal_state++;
-#ifdef USE_LED_FOR_BREAK_DETECT
-                LED_BREAK_OFF;
-#endif
             }
             break;
 
@@ -197,6 +194,9 @@ void DMX_Int_Break_Handler (void)
                 //serial was already enable, let it made a callback
                 dmx_receive_flag = 1;
                 EXTIOff();    //dejo 20ms del paquete sin INT
+#ifdef USE_LED_FOR_BREAK_DETECT
+                LED_BREAK_OFF;
+#endif
             }
             else	//falso disparo
             {

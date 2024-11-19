@@ -88,9 +88,11 @@ void DMXModeReset (void)
 unsigned char dmx_address_show = 0;
 unsigned char last_dmx_ch1 = 0;
 unsigned char last_dmx_ch2 = 0;
+unsigned char idle_pckt_cnt = 0;
 resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
 {
     resp_t resp = resp_continue;
+    unsigned char update_anyway = 0;
     
     switch (dmx_mode_state)
     {
@@ -129,6 +131,14 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
                     dmx_end_of_packet_update = 2;    //por lo que demora el update pido dos seguidos
                     resp = resp_change;
                 }
+                else if (idle_pckt_cnt > 40)
+                {
+                    idle_pckt_cnt = 0;
+                    update_anyway = 1;
+                }
+                else
+                    idle_pckt_cnt++;
+                
                 break;
             }
         }
@@ -154,12 +164,6 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
             }
             
         }
-
-        // if (!dmx_mode_dmx_receiving_timer)
-        //     CTRL_BKL_OFF;
-        // else
-        //     CTRL_BKL_ON;
-        
         break;
 
     default:
@@ -198,7 +202,15 @@ resp_t DMXMode (unsigned char * ch_val, sw_actions_t action)
         {
             //end of changing ask for a memory save
             resp = resp_need_to_save;
-        
+
+            // force a display update
+            dmx_end_of_packet_update = 1;            
+        }
+
+        if (update_anyway)
+        {
+            update_anyway = 0;
+            resp = resp_change;
         }
     }
     

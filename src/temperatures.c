@@ -108,7 +108,7 @@ unsigned short Temp_DegreesToTemp (unsigned char deg)
     calc = calc / dx;
 
     calc = calc + TEMP_IN_OFFSET;
-
+        
     return (unsigned short) calc;
     
 }

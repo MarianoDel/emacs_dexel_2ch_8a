@@ -923,7 +923,7 @@ resp_t LCD_ShowSelectv2 (const char * p_text, sw_actions_t sw_action)
 }
 
 
-// Password select states
+// Encoder select states
 typedef enum {
     
     ENCODER_SELECT_LINE1 = 0,
@@ -1345,6 +1345,141 @@ resp_t LCD_EncoderChange (char * primer_renglon,
         if (actions == selection_none)
         {
             *orig_value = change_current_val;
+            change_state = CHANGE_INIT;
+            resp = resp_finish;
+        }
+        break;
+        
+    default:
+        change_state = CHANGE_INIT;
+        break;
+    }
+
+    return resp;
+}
+
+
+//recibe:
+// el primer renglon
+// el valor de default, minimo y maximo permitido
+// la accion del switch
+//devuelve:
+// en el valor de default ultima seleccion
+// resp_continue o resp_finish si termino la seleccion
+resp_t LCD_EncoderChange_Decimals (char * primer_renglon,
+                                   unsigned char * p_orig_int, unsigned char * p_orig_dec,
+                                   unsigned char min_val_int, unsigned char min_val_dec,    //ej 1.1
+                                   unsigned char max_val_int, unsigned char max_val_dec,
+                                   sw_actions_t actions)
+{
+    resp_t resp = resp_continue;
+    char s_current [20];
+
+    switch (change_state)
+    {
+    case CHANGE_INIT:
+        LCD_1ER_RENGLON;
+        Lcd_TransmitStr(primer_renglon);
+        LCD_2DO_RENGLON;
+        Lcd_TransmitStr((const char *) "<-> or Select   ");                        
+
+        change_current_val_int = *p_orig_int;
+        change_current_val_dec = *p_orig_dec;
+        change_state_was_on = 1;
+        show_select_timer = TT_SHOW_SELECT_IN_ON;
+        change_state = CHANGE_SHOW_AGAIN;
+        break;
+
+    case CHANGE_WAIT_SELECT_IN_ON:
+        if (actions == selection_up) 
+        {
+            if (change_current_val_int < max_val_int)
+            {
+                if (change_current_val_dec < 9)
+                    change_current_val_dec++;
+                else
+                {
+                    change_current_val_dec = 0;
+                    change_current_val_int++;
+                }
+                
+                change_state = CHANGE_SHOW_AGAIN;
+            }
+            else if (change_current_val_dec < max_val_dec)
+            {
+                change_current_val_dec++;
+                change_state = CHANGE_SHOW_AGAIN;
+            }
+            
+            show_select_timer = TT_SHOW_SELECT_IN_ON;
+            LCD_2DO_RENGLON;
+            Lcd_TransmitStr((const char *) "++> or Select   ");
+        }
+
+        if (actions == selection_dwn) 
+        {
+            if (change_current_val_int > min_val_int)
+            {
+                if (change_current_val_dec > 0)
+                    change_current_val_dec--;
+                else
+                {
+                    change_current_val_dec = 9;
+                    change_current_val_int--;
+                }
+                
+                change_state = CHANGE_SHOW_AGAIN;
+            }
+            else if (change_current_val_dec > min_val_dec)
+            {
+                change_current_val_dec--;
+                change_state = CHANGE_SHOW_AGAIN;
+            }
+
+            show_select_timer = TT_SHOW_SELECT_IN_ON;
+            LCD_2DO_RENGLON;
+            Lcd_TransmitStr((const char *) "<-- or Select   ");                        
+        }
+
+        if (actions == selection_enter)
+        {
+            LCD_2DO_RENGLON;
+            Lcd_TransmitStr((const char *) "Selected...     ");
+            change_state = CHANGE_SELECT_DONE;
+        }
+        
+        if (!show_select_timer)
+        {
+            if (change_state_was_on)
+            {
+                change_state_was_on = 0;
+                Lcd_SetDDRAM(13);    //TODO: ver esto despues, pasarlo como info en estructura
+                Lcd_TransmitStr("   ");
+                LCD_2DO_RENGLON;
+                Lcd_TransmitStr((const char *) "<-> or Select   ");
+                show_select_timer = TT_SHOW_SELECT_IN_OFF;
+            }
+            else
+            {
+                change_state_was_on = 1;
+                change_state = CHANGE_SHOW_AGAIN;
+                show_select_timer = TT_SHOW_SELECT_IN_ON;
+            }
+        }
+        break;
+
+    case CHANGE_SHOW_AGAIN:
+        Lcd_SetDDRAM(13);    //TODO: ver esto despues, pasarlo como info en estructura
+        sprintf(s_current, "%01d.%01d", change_current_val_int, change_current_val_dec);
+        Lcd_TransmitStr(s_current);
+        change_state = CHANGE_WAIT_SELECT_IN_ON;
+        break;
+
+    case CHANGE_SELECT_DONE:
+        if (actions == selection_none)
+        {
+            *p_orig_int = change_current_val_int;
+            *p_orig_dec = change_current_val_dec;
             change_state = CHANGE_INIT;
             resp = resp_finish;
         }

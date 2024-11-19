@@ -186,37 +186,54 @@ resp_t DMXLcdMenu_ChangeAddress (dmx_menu_address_data_t * data)
         break;
             
     case CHANGING:
-        
-        if (action == selection_up)
+        if ((action == selection_up) ||
+            (action == selection_up_fast))
         {
-            if (*address < (512 - channels))
+            if (action == selection_up_fast)
             {
-                *address += 1;
-                *address_show = 1;
-                
-                *timer_address = TT_SHOW_ADDRESS;
-                dmx_address_cntr_out = CNTR_TO_OUT;
-
-                //force lcd update
-                resp = resp_change;
+                if (*address < (512 - channels - 10))
+                    *address += 10;
+                else
+                    *address = 512 - channels;
             }
+            else
+            {
+                if (*address < (512 - channels))
+                    *address += 1;
+            }
+
+            *address_show = 1;                
+            *timer_address = TT_SHOW_ADDRESS;
+            dmx_address_cntr_out = CNTR_TO_OUT;
+
+            //force lcd update
+            resp = resp_change;
+        }            
+
+        if ((action == selection_dwn) ||
+            (action == selection_dwn_fast))
+        {
+            if (action == selection_dwn_fast)
+            {
+                if (*address > 11)
+                    *address -= 10;
+                else
+                    *address = 1;
+            }
+            else
+            {
+                if (*address > 1)
+                    *address -= 1;
+            }
+
+            *address_show = 1;
+            *timer_address = TT_SHOW_ADDRESS;
+            dmx_address_cntr_out = CNTR_TO_OUT;
+                
+            //force lcd update
+            resp = resp_change;
         }
         
-        if (action == selection_dwn)
-        {
-            if (*address > 1)
-            {
-                *address -= 1;
-                *address_show = 1;
-                
-                *timer_address = TT_SHOW_ADDRESS;
-                dmx_address_cntr_out = CNTR_TO_OUT;
-                
-                //force lcd update
-                resp = resp_change;
-            }
-        }
-
         if (action == selection_enter)
             dmx_address_state++;
 

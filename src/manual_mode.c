@@ -257,10 +257,21 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
         break;
 
     case MM_MENU_SELECT_BRIGHTNESS:
-        if (sw == selection_up)
+        if ((sw == selection_up) ||
+            (sw == selection_up_fast))
         {
-            if (*(ch + 0) < 255)
-                *(ch + 0) += 1;
+            if (sw == selection_up_fast)
+            {
+                if (*(ch + 0) < (255 - 10))
+                    *(ch + 0) += 10;
+                else
+                    *(ch + 0) = 255;
+            }
+            else
+            {
+                if (*(ch + 0) < 255)
+                    *(ch + 0) += 1;
+            }
 
             show_option = 1;
             DataShow (SHOW_ALL,
@@ -273,10 +284,21 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
             resp = resp_change;
         }
 
-        if (sw == selection_dwn)
+        if ((sw == selection_dwn) ||
+            (sw == selection_dwn_fast))
         {
-            if (*(ch + 0) > 0)
-                *(ch + 0) -= 1;
+            if (sw == selection_dwn_fast)
+            {
+                if (*(ch + 0) > 10)
+                    *(ch + 0) -= 10;
+                else
+                    *(ch + 0) = 0;
+            }
+            else
+            {
+                if (*(ch + 0) > 0)
+                    *(ch + 0) -= 1;
+            }
 
             show_option = 1;
             DataShow (SHOW_ALL,
@@ -340,10 +362,21 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
         break;
         
     case MM_MENU_SELECT_TEMP:
-        if (sw == selection_up)
+        if ((sw == selection_up) ||
+            (sw == selection_up_fast))
         {
-            if (*(ch + 1) < 255)
-                *(ch + 1) += 1;
+            if (sw == selection_up_fast)
+            {
+                if (*(ch + 1) < (255 - 10))
+                    *(ch + 1) += 10;
+                else
+                    *(ch + 1) = 255;
+            }
+            else
+            {
+                if (*(ch + 1) < 255)
+                    *(ch + 1) += 1;
+            }
 
             show_option = 1;
             DataShow (SHOW_ALL,
@@ -356,10 +389,21 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
             resp = resp_change;            
         }
 
-        if (sw == selection_dwn)
+        if ((sw == selection_dwn) ||
+            (sw == selection_dwn_fast))
         {
-            if (*(ch + 1) > 0)
-                *(ch + 1) -= 1;
+            if (sw == selection_dwn_fast)
+            {
+                if (*(ch + 1) > 10)
+                    *(ch + 1) -= 10;
+                else
+                    *(ch + 1) = 0;
+            }
+            else
+            {
+                if (*(ch + 1) > 0)
+                    *(ch + 1) -= 1;
+            }
 
             show_option = 1;
             DataShow (SHOW_ALL,
