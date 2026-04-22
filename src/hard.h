@@ -15,8 +15,8 @@
 
 //-- Defines For Configuration -------------------
 //---- Configuration for Hardware Versions -------
-#define HARDWARE_VERSION_1_3    // change on footprint and china manufacturer
-// #define HARDWARE_VERSION_1_2    // cambio pines para aceptar placa colores
+// #define HARDWARE_VERSION_1_3    // change on footprint and china manufacturer
+#define HARDWARE_VERSION_1_2    // cambio pines para aceptar placa colores
 // #define HARDWARE_VERSION_1_1    //fuente 48V->12V en placa control
 // #define HARDWARE_VERSION_1_0    //micro F030K6T6
 
@@ -31,7 +31,7 @@
 // #define USE_CTROL_FAN_ALWAYS_ON
 // #define USE_F_CHNLS_FOR_ENABLE        //this one or the later
 // #define USE_F_CHNLS_FOR_FREQ_DETECT    //this one or the former
-#define USE_SW_UP_FOR_SW_DWN    // front panel error, change UP for DWN
+// #define USE_SW_UP_FOR_SW_DWN    // front panel error, change UP for DWN
 
 // #define USE_TEST_ON_ENA_CH1
 // #define USE_TEST_ON_ENA_CH2    //ch2 with pwm in ena connection LD always on

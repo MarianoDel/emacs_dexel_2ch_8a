@@ -48,7 +48,8 @@ void DMXLcdMenuReset (void)
 resp_t DMXLcdMenu (dmx_menu_data_t * pmenu_data)
 {
     resp_t resp = resp_continue;
-    char s_temp[17] = { 0 };    //16 chars per line + '\0'
+    // char s_temp[17] = { 0 };    //16 chars per line + '\0'
+    char s_temp[22] = { 0 };    //16 chars per line + '\0'    
 
     switch (dmx_menu_state)
     {

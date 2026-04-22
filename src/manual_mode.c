@@ -470,7 +470,7 @@ resp_t ManualMode_Menu (unsigned char * ch, sw_actions_t sw)
 
 void DataShow (unsigned char state, unsigned char bright, unsigned char temp, unsigned char ch_mode)
 {
-    char s_temp[17] = { 0 };    //16 chars per line + '\0'
+    char s_temp[20] = { 0 };    //16 chars per line + '\0'
 
     switch (state)
     {

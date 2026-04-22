@@ -73,7 +73,7 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
     resp_t resp = resp_continue;
     unsigned char onoff = 0;
     unsigned short fchannel = 0;
-    char s_temp[17] = { 0 };    //16 chars per line + '\0'
+    char s_temp[20] = { 0 };    //16 chars per line + '\0'
     unsigned char new_current_int = 0;
     unsigned char new_current_dec = 0;
 
