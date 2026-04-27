@@ -55,7 +55,6 @@ menu_enc_state_t menu_enc_state = MENU_ENC_INIT;
 
 // Module Private Functions ----------------------------------------------------
 sw_actions_t MENU_Check_Actions (void);
-unsigned char ConvertCurrentFromMemory (mem_bkp_t * config);
 void ConvertCurrentToMemory (mem_bkp_t * config, unsigned char current_int, unsigned char current_dec);
 
 
@@ -246,14 +245,7 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
         break;
 
     case MENU_CONF_MAX_CURRENT:
-        // old config
-        // fchannel = ConvertCurrentFromMemory(configurations);        
-        // resp = LCD_EncoderChange("Max current:    ",
-        //                          &fchannel,
-        //                          1,
-        //                          8,
-        //                          sw_action);
-
+#ifdef USE_CURRENT_SETTING_WITH_DECIMALS
         // new config
         new_current_int = configurations->current_int;
         new_current_dec = configurations->current_dec;
@@ -262,13 +254,29 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
                                            1, 0,
                                            8, 0,
                                            sw_action);
-        
+
         if (resp == resp_finish)
         {
             ConvertCurrentToMemory(configurations, new_current_int, new_current_dec);
             menu_state = MENU_SHOW_MAX_CURRENT;
             resp = resp_continue;
-        }
+        }	
+#else
+        // old config
+        fchannel = configurations->current_int;        
+        resp = LCD_EncoderChange("Max current:    ",
+                                 &fchannel,
+                                 1,
+                                 8,
+                                 sw_action);
+
+        if (resp == resp_finish)
+        {
+            ConvertCurrentToMemory(configurations, fchannel, new_current_dec);
+            menu_state = MENU_SHOW_MAX_CURRENT;
+            resp = resp_continue;
+        }	
+#endif   
 
         break;
 
@@ -379,99 +387,139 @@ resp_t MENU_Main (mem_bkp_t * configurations, sw_actions_t sw_action)
     return resp;
 }
 
-
-unsigned char ConvertCurrentFromMemory (mem_bkp_t * config)
-{
-    unsigned char curr = 0;
-
-    if (config->current_eight_amps == 0)
-    {
-        if (config->max_current_channels[0] > 192)
-            curr = 4;
-        else if (config->max_current_channels[0] > 128)
-            curr = 3;
-        else if (config->max_current_channels[0] > 64)
-            curr = 2;
-        else
-            curr = 1;
-    }
-    else
-    {
-        if (config->max_current_channels[0] > 224)
-            curr = 8;
-        else if (config->max_current_channels[0] > 192)
-            curr = 7;
-        else if (config->max_current_channels[0] > 160)
-            curr = 6;
-        else
-            curr = 5;
-    }
-        
-    return curr;
-}
-
     
 void ConvertCurrentToMemory (mem_bkp_t * config,
                              unsigned char current_int,
                              unsigned char current_dec)
 {
+#ifdef USE_CURRENT_SETTING_WITH_DECIMALS
+    unsigned short calci = 0;
+    unsigned short calcd = 0;	
+    
     // new memory backup
     config->current_int = current_int;
     config->current_dec = current_dec;    
 
+    // set max current for channels
+    if (current_int > 4)
+    {
+	config->current_eight_amps = 1;
+	current_int -= 4;
+
+	// 4.5 int = 4, dec = 5
+	// 5.0 int = 5, dec = 0; max_c = 255
+	calci = current_int * 32;
+	if ((current_dec < 10) && (current_dec > 0))
+	{
+	    calcd = current_dec * 32;
+	    calcd = calcd / 10;
+	}
+	
+	unsigned short ch = (unsigned char) calci + (unsigned char) calcd + 128;
+	if (ch > 255)
+	    ch = 255;
+	
+	config->max_current_channels[0] = (unsigned char) ch;
+	config->max_current_channels[1] = (unsigned char) ch;
+    }
+    else if ((current_int == 4) &&
+	     (current_dec > 0))
+    {
+	config->current_eight_amps = 1;
+	current_int -= 4;
+
+	// 4.5 int = 4, dec = 5
+	// 5.0 int = 5, dec = 0; max_c = 255
+	calci = current_int * 32;
+	if ((current_dec < 10) && (current_dec > 0))
+	{
+	    calcd = current_dec * 32;
+	    calcd = calcd / 10;
+	}
+
+	unsigned short ch = (unsigned char) calci + (unsigned char) calcd + 128;
+	if (ch > 255)
+	    ch = 255;
+	
+	config->max_current_channels[0] = (unsigned char) ch;
+	config->max_current_channels[1] = (unsigned char) ch;
+    }
+    else
+    {
+	config->current_eight_amps = 0;
+
+	// 3.5 int = 3, dec = 5
+	// 4.0 int = 4, dec = 0; max_c = 255
+	// 3.0 int = 3, dec = 0; max_c = 192
+	calci = current_int * 64;
+	if ((current_dec < 10) && (current_dec > 0))
+	{
+	    calcd = current_dec * 64;
+	    calcd = calcd / 10;
+	}
+
+	unsigned short ch = (unsigned char) calci + (unsigned char) calcd;
+	if (ch > 255)
+	    ch = 255;
+	
+	config->max_current_channels[0] = (unsigned char) ch;
+	config->max_current_channels[1] = (unsigned char) ch;
+    }
+#else
     // old memory backup
-    // switch (current)
-    // {
-    // case 8:
-        
-    //     config->max_current_channels[0] = 255;
-    //     config->max_current_channels[1] = 255;
-    //     break;
+    switch (current_int)
+    {
+    case 8:
+        config->current_eight_amps = 1;        
+        config->max_current_channels[0] = 255;
+        config->max_current_channels[1] = 255;
+        break;
 
-    // case 7:
-    //     config->current_eight_amps = 1;
-    //     config->max_current_channels[0] = 224;
-    //     config->max_current_channels[1] = 224;        
-    //     break;
+    case 7:
+        config->current_eight_amps = 1;
+        config->max_current_channels[0] = 224;
+        config->max_current_channels[1] = 224;        
+        break;
 
-    // case 6:
-    //     config->current_eight_amps = 1;
-    //     config->max_current_channels[0] = 192;
-    //     config->max_current_channels[1] = 192;
-    //     break;
+    case 6:
+        config->current_eight_amps = 1;
+        config->max_current_channels[0] = 192;
+        config->max_current_channels[1] = 192;
+        break;
 
-    // case 5:
-    //     config->current_eight_amps = 1;
-    //     config->max_current_channels[0] = 160;
-    //     config->max_current_channels[1] = 160;        
-    //     break;
+    case 5:
+        config->current_eight_amps = 1;
+        config->max_current_channels[0] = 160;
+        config->max_current_channels[1] = 160;        
+        break;
 
-    // case 4:
-    //     config->current_eight_amps = 0;
-    //     config->max_current_channels[0] = 255;
-    //     config->max_current_channels[1] = 255;        
-    //     break;
+    case 4:
+        config->current_eight_amps = 0;
+        config->max_current_channels[0] = 255;
+        config->max_current_channels[1] = 255;        
+        break;
 
-    // case 3:
-    //     config->current_eight_amps = 0;
-    //     config->max_current_channels[0] = 192;
-    //     config->max_current_channels[1] = 192;        
-    //     break;
+    case 3:
+        config->current_eight_amps = 0;
+        config->max_current_channels[0] = 192;
+        config->max_current_channels[1] = 192;        
+        break;
 
-    // case 2:
-    //     config->current_eight_amps = 0;
-    //     config->max_current_channels[0] = 128;
-    //     config->max_current_channels[1] = 128;        
-    //     break;
+    case 2:
+        config->current_eight_amps = 0;
+        config->max_current_channels[0] = 128;
+        config->max_current_channels[1] = 128;        
+        break;
  
-    // case 1:
-    // default:
-    //     config->current_eight_amps = 0;
-    //     config->max_current_channels[0] = 64;
-    //     config->max_current_channels[1] = 64;        
-    //     break;
+    case 1:
+    default:
+        config->current_eight_amps = 0;
+        config->max_current_channels[0] = 64;
+        config->max_current_channels[1] = 64;        
+        break;
 
-    // }
+    }
+#endif
 }
     
 //--- end of file ---//

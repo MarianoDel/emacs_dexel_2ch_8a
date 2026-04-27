@@ -193,11 +193,14 @@ int main(void)
             {
                 //hardware defaults
                 mem_conf.temp_prot = TEMP_IN_70;    //70 degrees
+		// max current on 4amps
                 mem_conf.max_current_channels[0] = 255;
                 mem_conf.max_current_channels[1] = 255;
                 mem_conf.current_eight_amps = 0;
+		mem_conf.current_int = 4;
+		mem_conf.current_dec = 0;
+		// operation mode
                 mem_conf.channels_operation_mode = CCT1_MODE;
-
                 mem_conf.dmx_first_channel = 1;
                 mem_conf.dmx_channel_quantity = 2;                
                 // mem_conf.program_type = DMX_MODE;

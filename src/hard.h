@@ -37,6 +37,9 @@
 // #define USE_TEST_ON_ENA_CH2    //ch2 with pwm in ena connection LD always on
 #define USE_OVERCURRENT_PROT    // protection on less than 40khz detection
 
+// #define USE_CURRENT_SETTING_WITH_DECIMALS    // max current with decimals ex. 3.5
+
+
 // -- Freq for the timers
 // #define USE_PWM_16000_FREQ_1KHZ
 #define USE_PWM_4000_FREQ_4KHZ
