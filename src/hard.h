@@ -15,8 +15,8 @@
 
 //-- Defines For Configuration -------------------
 //---- Configuration for Hardware Versions -------
-// #define HARDWARE_VERSION_1_3    // change on footprint and china manufacturer
-#define HARDWARE_VERSION_1_2    // cambio pines para aceptar placa colores
+#define HARDWARE_VERSION_1_3    // change on footprint and china manufacturer
+// #define HARDWARE_VERSION_1_2    // cambio pines para aceptar placa colores
 // #define HARDWARE_VERSION_1_1    //fuente 48V->12V en placa control
 // #define HARDWARE_VERSION_1_0    //micro F030K6T6
 
@@ -37,7 +37,7 @@
 // #define USE_TEST_ON_ENA_CH2    //ch2 with pwm in ena connection LD always on
 #define USE_OVERCURRENT_PROT    // protection on less than 40khz detection
 
-// #define USE_CURRENT_SETTING_WITH_DECIMALS    // max current with decimals ex. 3.5
+#define USE_CURRENT_SETTING_WITH_DECIMALS    // max current with decimals ex. 3.5
 
 
 // -- Freq for the timers
