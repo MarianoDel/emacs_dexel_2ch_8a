@@ -24,6 +24,10 @@
 void Percentage (unsigned char, unsigned char *, unsigned char *);
 void ColorTemp1 (unsigned char dmx_value, unsigned short * temp);
 void ColorTemp2 (unsigned char dmx_value, unsigned short * temp);
+void Bright_TempColor_To_Temp0_Temp1 (unsigned char bright,
+				      unsigned char tempcolor,
+				      unsigned char * temp0,
+				      unsigned char * temp1);
 
     
 #endif    /* _DMX_UTILS_H_ */

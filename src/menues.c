@@ -415,7 +415,7 @@ void ConvertCurrentToMemory (mem_bkp_t * config,
 	    calcd = calcd / 10;
 	}
 	
-	unsigned short ch = (unsigned char) calci + (unsigned char) calcd + 128;
+	unsigned short ch = calci + calcd + 128;
 	if (ch > 255)
 	    ch = 255;
 	
@@ -426,18 +426,14 @@ void ConvertCurrentToMemory (mem_bkp_t * config,
 	     (current_dec > 0))
     {
 	config->current_eight_amps = 1;
-	current_int -= 4;
 
-	// 4.5 int = 4, dec = 5
-	// 5.0 int = 5, dec = 0; max_c = 255
-	calci = current_int * 32;
 	if ((current_dec < 10) && (current_dec > 0))
 	{
 	    calcd = current_dec * 32;
 	    calcd = calcd / 10;
 	}
 
-	unsigned short ch = (unsigned char) calci + (unsigned char) calcd + 128;
+	unsigned short ch = calcd + 128;
 	if (ch > 255)
 	    ch = 255;
 	
@@ -458,7 +454,7 @@ void ConvertCurrentToMemory (mem_bkp_t * config,
 	    calcd = calcd / 10;
 	}
 
-	unsigned short ch = (unsigned char) calci + (unsigned char) calcd;
+	unsigned short ch = calci + calcd;
 	if (ch > 255)
 	    ch = 255;
 	

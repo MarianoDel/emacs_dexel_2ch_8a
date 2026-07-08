@@ -84,5 +84,35 @@ void ColorTemp2 (unsigned char dmx_value, unsigned short * temp)
     }
 }
 
+
+void Bright_TempColor_To_Temp0_Temp1 (unsigned char bright,
+				      unsigned char tempcolor,
+				      unsigned char * temp0,
+				      unsigned char * temp1)
+{
+    unsigned char b;
+    unsigned char t0, t1;
+    unsigned short calc;
     
+    b = bright;
+    t0 = 255 - tempcolor;
+    t1 = 255 - t0;
+
+    calc = t0 * b;
+    calc >>= 8;
+
+    if ((b) && (t0))
+	*temp0 = (unsigned char) calc + 1;
+    else
+	*temp0 = 0;
+	    
+    calc = t1 * b;
+    calc >>= 8;
+
+    if ((b) && (t1))
+	*temp1 = (unsigned char) calc + 1;
+    else
+	*temp1 = 0;
+    
+}
 //--- end of file ---//
